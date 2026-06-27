@@ -5,9 +5,13 @@ use App\Models\Fight;
 use App\Models\Fighter;
 use App\Models\RoundStat;
 use App\Models\Scorecard;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
+
+beforeEach(fn () => Sanctum::actingAs(User::factory()->create()));
 
 /* ----------------------------------------------------------------- Events */
 
