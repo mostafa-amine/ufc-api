@@ -33,7 +33,7 @@ endpoints:
       -
         custom: []
         status: 200
-        content: '{"data":{"status":"ok","counts":{"events":0,"fighters":1,"fights":0},"last_scrape":null}}'
+        content: '{"data":{"status":"ok","counts":{"events":1,"fighters":26,"fights":13},"last_scrape":null}}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -112,7 +112,7 @@ endpoints:
       -
         custom: []
         status: 201
-        content: '{"data":{"api_key":"1|MgLs8tdU24caMlEX0aiE9CZ3JN46Rdye20J80645fa920ce0","rate_tier":"free","user":{"name":"b","email":"zbailey@example.net"}}}'
+        content: '{"data":{"api_key":"3|L5TiNZqh0oXp1smkZmgRKBmMNhVuWB8iBdNjDtvy7934d1fe","rate_tier":"free","user":{"name":"b","email":"zbailey@example.net"}}}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
@@ -169,7 +169,7 @@ endpoints:
         name: from
         description: 'Must be a valid date.'
         required: false
-        example: '2026-06-27T18:36:06'
+        example: '2026-06-27T18:50:49'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -180,7 +180,7 @@ endpoints:
         name: to
         description: 'Must be a valid date.'
         required: false
-        example: '2026-06-27T18:36:06'
+        example: '2026-06-27T18:50:49'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -213,7 +213,7 @@ endpoints:
         name: sort
         description: ''
         required: false
-        example: '-name'
+        example: '-date'
         type: string
         enumValues:
           - date
@@ -225,11 +225,11 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       status: upcoming
-      from: '2026-06-27T18:36:06'
-      to: '2026-06-27T18:36:06'
+      from: '2026-06-27T18:50:49'
+      to: '2026-06-27T18:50:49'
       search: b
       per_page: 22
-      sort: '-name'
+      sort: '-date'
     fileParameters: []
     responses:
       -
@@ -273,14 +273,14 @@ endpoints:
         name: event_ufcstats_id
         description: 'The ID of the event ufcstats.'
         required: true
-        example: architecto
+        example: 31e1ea6fe6b682f8
         type: string
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         deprecated: false
     cleanUrlParameters:
-      event_ufcstats_id: architecto
+      event_ufcstats_id: 31e1ea6fe6b682f8
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters: []
@@ -650,14 +650,14 @@ endpoints:
         name: fight_ufcstats_id
         description: 'The ID of the fight ufcstats.'
         required: true
-        example: architecto
+        example: c13dc0cccef263f7
         type: string
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         deprecated: false
     cleanUrlParameters:
-      fight_ufcstats_id: architecto
+      fight_ufcstats_id: c13dc0cccef263f7
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters: []

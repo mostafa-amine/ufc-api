@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Laravel API Documentation</title>
+    <title>Unofficial UFC API</title>
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 
@@ -189,9 +189,9 @@ content-type: application/json
     &quot;data&quot;: {
         &quot;status&quot;: &quot;ok&quot;,
         &quot;counts&quot;: {
-            &quot;events&quot;: 0,
-            &quot;fighters&quot;: 1,
-            &quot;fights&quot;: 0
+            &quot;events&quot;: 1,
+            &quot;fighters&quot;: 26,
+            &quot;fights&quot;: 13
         },
         &quot;last_scrape&quot;: null
     }
@@ -350,7 +350,7 @@ x-ratelimit-remaining: 5
 
 <code class="language-json" style="max-height: 300px;">{
     &quot;data&quot;: {
-        &quot;api_key&quot;: &quot;1|MgLs8tdU24caMlEX0aiE9CZ3JN46Rdye20J80645fa920ce0&quot;,
+        &quot;api_key&quot;: &quot;3|L5TiNZqh0oXp1smkZmgRKBmMNhVuWB8iBdNjDtvy7934d1fe&quot;,
         &quot;rate_tier&quot;: &quot;free&quot;,
         &quot;user&quot;: {
             &quot;name&quot;: &quot;b&quot;,
@@ -502,11 +502,11 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Accept: application/json" \
     --data "{
     \"status\": \"upcoming\",
-    \"from\": \"2026-06-27T18:36:06\",
-    \"to\": \"2026-06-27T18:36:06\",
+    \"from\": \"2026-06-27T18:50:49\",
+    \"to\": \"2026-06-27T18:50:49\",
     \"search\": \"b\",
     \"per_page\": 22,
-    \"sort\": \"-name\"
+    \"sort\": \"-date\"
 }"
 </code></pre></div>
 
@@ -524,11 +524,11 @@ const headers = {
 
 let body = {
     "status": "upcoming",
-    "from": "2026-06-27T18:36:06",
-    "to": "2026-06-27T18:36:06",
+    "from": "2026-06-27T18:50:49",
+    "to": "2026-06-27T18:50:49",
     "search": "b",
     "per_page": 22,
-    "sort": "-name"
+    "sort": "-date"
 };
 
 fetch(url, {
@@ -664,10 +664,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="from"                data-endpoint="GETv1-events"
-               value="2026-06-27T18:36:06"
+               value="2026-06-27T18:50:49"
                data-component="body">
     <br>
-<p>Must be a valid date. Example: <code>2026-06-27T18:36:06</code></p>
+<p>Must be a valid date. Example: <code>2026-06-27T18:50:49</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>to</code></b>&nbsp;&nbsp;
@@ -676,10 +676,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="to"                data-endpoint="GETv1-events"
-               value="2026-06-27T18:36:06"
+               value="2026-06-27T18:50:49"
                data-component="body">
     <br>
-<p>Must be a valid date. Example: <code>2026-06-27T18:36:06</code></p>
+<p>Must be a valid date. Example: <code>2026-06-27T18:50:49</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>search</code></b>&nbsp;&nbsp;
@@ -712,10 +712,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="sort"                data-endpoint="GETv1-events"
-               value="-name"
+               value="-date"
                data-component="body">
     <br>
-<p>Example: <code>-name</code></p>
+<p>Example: <code>-date</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>date</code></li> <li><code>-date</code></li> <li><code>name</code></li> <li><code>-name</code></li></ul>
         </div>
@@ -735,7 +735,7 @@ Must be one of:
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://ufc-api.test/v1/events/architecto" \
+    --get "http://ufc-api.test/v1/events/31e1ea6fe6b682f8" \
     --header "Authorization: Bearer {YOUR_AUTH_KEY}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -743,7 +743,7 @@ Must be one of:
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://ufc-api.test/v1/events/architecto"
+    "http://ufc-api.test/v1/events/31e1ea6fe6b682f8"
 );
 
 const headers = {
@@ -871,10 +871,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="event_ufcstats_id"                data-endpoint="GETv1-events--event_ufcstats_id-"
-               value="architecto"
+               value="31e1ea6fe6b682f8"
                data-component="url">
     <br>
-<p>The ID of the event ufcstats. Example: <code>architecto</code></p>
+<p>The ID of the event ufcstats. Example: <code>31e1ea6fe6b682f8</code></p>
             </div>
                     </form>
 
@@ -1660,7 +1660,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://ufc-api.test/v1/fights/architecto" \
+    --get "http://ufc-api.test/v1/fights/c13dc0cccef263f7" \
     --header "Authorization: Bearer {YOUR_AUTH_KEY}" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
@@ -1668,7 +1668,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://ufc-api.test/v1/fights/architecto"
+    "http://ufc-api.test/v1/fights/c13dc0cccef263f7"
 );
 
 const headers = {
@@ -1796,10 +1796,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="fight_ufcstats_id"                data-endpoint="GETv1-fights--fight_ufcstats_id-"
-               value="architecto"
+               value="c13dc0cccef263f7"
                data-component="url">
     <br>
-<p>The ID of the fight ufcstats. Example: <code>architecto</code></p>
+<p>The ID of the fight ufcstats. Example: <code>c13dc0cccef263f7</code></p>
             </div>
                     </form>
 
