@@ -184,10 +184,31 @@ Meta
 | Fight detail (stats) | `http://ufcstats.com/fight-details/{id}` |
 | Fighter detail | `http://ufcstats.com/fighter-details/{id}` |
 
+### Anti-bot challenge (discovered during build)
+ufcstats now gates every page behind a lightweight JavaScript **proof-of-work** challenge
+("Checking your browser…"), so the original "100% static HTML" assumption is only true *after*
+clearance. The challenge is self-contained and standard SHA-256:
+1. The page embeds a `nonce` and a difficulty (`target` = N leading hex zeros, currently 2).
+2. Find `n` such that `sha256(nonce + ":" + n)` starts with N zeros (~256 tries; trivial).
+3. `POST /__c` with `nonce` + `n`; the response sets a clearance cookie. Subsequent requests
+   with that cookie return real HTML.
+
+This is solvable **server-side in pure PHP** (no headless browser), so the lightweight
+Laravel-only design holds. `UfcStatsClient` solves it transparently on a challenge response,
+persists the clearance cookie (cache), and reuses it across requests, re-solving only when it
+expires. Verified end-to-end during M2.
+
+### Scorecard ordering (discovered + verified, 9 samples)
+ufcstats prints each judge's score as `a - b` where the **second number is the bout winner's
+corner** — *not* a fixed red/blue position. Confirmed across unanimous + split decisions and
+both winner corners. The parser maps scores to corners via the bout winner; naive `[red, blue]`
+positional mapping (used by most scrapers) corrupts ~half of all scorecards. Draws/NC fall back
+to document order (`first → red`, `second → blue`) and are documented as best-effort.
+
 ### Components
-- **`UfcStatsClient`** — polite HTTP: configurable concurrency (default 4), retry w/ backoff
-  on 5xx/timeout, descriptive User-Agent, small jittered delay. Optional on-disk HTML cache
-  for replay/debug.
+- **`UfcStatsClient`** — polite HTTP: solves the PoW challenge + caches clearance cookie,
+  configurable concurrency (default 4), retry w/ backoff on 5xx/timeout, descriptive
+  User-Agent, small jittered delay. Optional on-disk HTML cache for replay/debug.
 - **Parsers** (one per page type) — pure: `string $html -> DTO`. `EventListParser`,
   `EventDetailParser`, `FightDetailParser`, `FighterParser`. Use DomCrawler + CSS selectors.
   Fully unit-testable against saved HTML fixtures.
