@@ -1,0 +1,680 @@
+name: Endpoints
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: v1/health
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"data":{"status":"ok","counts":{"events":0,"fighters":1,"fights":0},"last_scrape":null}}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: v1/register
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Register and receive a free API key. Send it as `Authorization: Bearer <key>`.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      email:
+        custom: []
+        name: email
+        description: 'Must be a valid email address. Must not be greater than 255 characters.'
+        required: true
+        example: zbailey@example.net
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      password:
+        custom: []
+        name: password
+        description: 'Must be at least 8 characters.'
+        required: true
+        example: '-0pBNvYgxw'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      name: b
+      email: zbailey@example.net
+      password: '-0pBNvYgxw'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 201
+        content: '{"data":{"api_key":"1|MgLs8tdU24caMlEX0aiE9CZ3JN46Rdye20J80645fa920ce0","rate_tier":"free","user":{"name":"b","email":"zbailey@example.net"}}}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-ratelimit-limit: '6'
+          x-ratelimit-remaining: '5'
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: v1/events
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: upcoming
+        type: string
+        enumValues:
+          - upcoming
+          - completed
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      from:
+        custom: []
+        name: from
+        description: 'Must be a valid date.'
+        required: false
+        example: '2026-06-27T18:36:06'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      to:
+        custom: []
+        name: to
+        description: 'Must be a valid date.'
+        required: false
+        example: '2026-06-27T18:36:06'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      search:
+        custom: []
+        name: search
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      per_page:
+        custom: []
+        name: per_page
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 22
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      sort:
+        custom: []
+        name: sort
+        description: ''
+        required: false
+        example: '-name'
+        type: string
+        enumValues:
+          - date
+          - '-date'
+          - name
+          - '-name'
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      status: upcoming
+      from: '2026-06-27T18:36:06'
+      to: '2026-06-27T18:36:06'
+      search: b
+      per_page: 22
+      sort: '-name'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"error":{"code":"unauthenticated","message":"Authentication required. Provide a valid API key."}}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'v1/events/{event_ufcstats_id}'
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      event_ufcstats_id:
+        custom: []
+        name: event_ufcstats_id
+        description: 'The ID of the event ufcstats.'
+        required: true
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      event_ufcstats_id: architecto
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"error":{"code":"unauthenticated","message":"Authentication required. Provide a valid API key."}}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: v1/fighters
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      search:
+        custom: []
+        name: search
+        description: 'Must not be greater than 100 characters.'
+        required: false
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      stance:
+        custom: []
+        name: stance
+        description: 'Must not be greater than 30 characters.'
+        required: false
+        example: 'n'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      per_page:
+        custom: []
+        name: per_page
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 7
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      sort:
+        custom: []
+        name: sort
+        description: ''
+        required: false
+        example: wins
+        type: string
+        enumValues:
+          - name
+          - '-name'
+          - wins
+          - '-wins'
+          - losses
+          - '-losses'
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      search: b
+      stance: 'n'
+      per_page: 7
+      sort: wins
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"error":{"code":"unauthenticated","message":"Authentication required. Provide a valid API key."}}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'v1/fighters/{fighter_ufcstats_id}'
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      fighter_ufcstats_id:
+        custom: []
+        name: fighter_ufcstats_id
+        description: 'The ID of the fighter ufcstats.'
+        required: true
+        example: c814b4c899793af6
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      fighter_ufcstats_id: c814b4c899793af6
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"error":{"code":"unauthenticated","message":"Authentication required. Provide a valid API key."}}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'v1/fighters/{fighter_ufcstats_id}/fights'
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      fighter_ufcstats_id:
+        custom: []
+        name: fighter_ufcstats_id
+        description: 'The ID of the fighter ufcstats.'
+        required: true
+        example: c814b4c899793af6
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      fighter_ufcstats_id: c814b4c899793af6
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"error":{"code":"unauthenticated","message":"Authentication required. Provide a valid API key."}}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: v1/fights
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      event_id:
+        custom: []
+        name: event_id
+        description: 'Must be 16 characters.'
+        required: false
+        example: bngzmiyvdljnikhw
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      fighter_id:
+        custom: []
+        name: fighter_id
+        description: 'Must be 16 characters.'
+        required: false
+        example: aykcmyuwpwlvqwrs
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      method:
+        custom: []
+        name: method
+        description: 'Must not be greater than 50 characters.'
+        required: false
+        example: i
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      weight_class:
+        custom: []
+        name: weight_class
+        description: 'Must not be greater than 50 characters.'
+        required: false
+        example: t
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      is_title_bout:
+        custom: []
+        name: is_title_bout
+        description: ''
+        required: false
+        example: false
+        type: boolean
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      per_page:
+        custom: []
+        name: per_page
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 3
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      event_id: bngzmiyvdljnikhw
+      fighter_id: aykcmyuwpwlvqwrs
+      method: i
+      weight_class: t
+      is_title_bout: false
+      per_page: 3
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"error":{"code":"unauthenticated","message":"Authentication required. Provide a valid API key."}}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'v1/fights/{fight_ufcstats_id}'
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      fight_ufcstats_id:
+        custom: []
+        name: fight_ufcstats_id
+        description: 'The ID of the fight ufcstats.'
+        required: true
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      fight_ufcstats_id: architecto
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"error":{"code":"unauthenticated","message":"Authentication required. Provide a valid API key."}}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
