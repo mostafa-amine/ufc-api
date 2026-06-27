@@ -207,6 +207,21 @@ class ScrapeUfc
         });
     }
 
+    /** Scrape the N most recent COMPLETED events (the ones that actually have stats). */
+    public function latest(int $count): ScrapeRun
+    {
+        return $this->track('latest', function () use ($count) {
+            $this->syncEventList();
+            Event::query()
+                ->where('status', 'completed')
+                ->whereNotNull('date')
+                ->orderByDesc('date')
+                ->limit(max(1, $count))
+                ->get()
+                ->each(fn (Event $e) => $this->scrapeEvent($e->ufcstats_id));
+        });
+    }
+
     private function track(string $type, Closure $work): ScrapeRun
     {
         $run = ScrapeRun::create(['type' => $type, 'status' => 'running', 'started_at' => now()]);

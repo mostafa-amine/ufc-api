@@ -239,12 +239,27 @@
   </div>
 </section>
 
+@php
+  // Real bout data when scraped; otherwise the original static illustration.
+  $f = $featured ?? [
+    'red_last' => 'Aliskerov', 'blue_last' => 'Ferreira',
+    'red_score' => 30, 'blue_score' => 27, 'red_sig' => 47, 'blue_sig' => 19,
+    'control' => '8:53', 'method' => 'Decision - Unanimous', 'event' => 'UFC Fight Night',
+    'cards' => [
+      ['judge' => 'David Lethaby', 'red' => 30, 'blue' => 27],
+      ['judge' => 'Vito Paolillo', 'red' => 30, 'blue' => 27],
+      ['judge' => 'Clemens Werner', 'red' => 30, 'blue' => 27],
+    ],
+  ];
+  $disparity = $f['red_sig'].' significant strikes to '.$f['blue_sig']
+      .($f['control'] ? ', '.$f['control'].' of control' : '');
+@endphp
 <section class="block" id="response">
   <div class="wrap show">
     <div>
-      <div class="eyebrow">Mapped right</div>
-      <h2>Aliskerov 30,<br>Ferreira 27.</h2>
-      <p class="sub" style="margin-bottom:26px">Aliskerov dominated &mdash; 47 significant strikes to 19, nearly nine minutes of control &mdash; and won every card. ufcstats prints that as <span style="font-family:var(--mono);color:var(--ink)">27&nbsp;&ndash;&nbsp;30</span>. Read it by column and you hand the win to the loser. We resolve scores by the bout winner, so the corners are never flipped.</p>
+      <div class="eyebrow">Mapped right{{ $featured ? ' · live from the API' : '' }}</div>
+      <h2>{{ $f['red_last'] }} {{ $f['red_score'] }},<br>{{ $f['blue_last'] }} {{ $f['blue_score'] }}.</h2>
+      <p class="sub" style="margin-bottom:26px">{{ $f['red_last'] }} dominated &mdash; {{ $disparity }} &mdash; and won every card. ufcstats prints that as <span style="font-family:var(--mono);color:var(--ink)">{{ $f['blue_score'] }}&nbsp;&ndash;&nbsp;{{ $f['red_score'] }}</span>. Read it by column and you hand the win to the loser. We resolve scores by the bout winner, so the corners are never flipped.</p>
       <div style="display:flex; gap:22px; flex-wrap:wrap">
         <span class="corner-tag"><span class="sq" style="background:var(--red)"></span>Red corner</span>
         <span class="corner-tag"><span class="sq" style="background:var(--blue)"></span>Blue corner</span>
@@ -252,10 +267,10 @@
     </div>
     <div class="scoreboard">
       <div class="sb-head"><div>Judge</div><div>Red</div><div>Blue</div></div>
-      <div class="sb-row"><div class="judge">David Lethaby</div><div class="red">30</div><div class="blue">27</div></div>
-      <div class="sb-row"><div class="judge">Vito Paolillo</div><div class="red">30</div><div class="blue">27</div></div>
-      <div class="sb-row"><div class="judge">Clemens Werner</div><div class="red">30</div><div class="blue">27</div></div>
-      <div class="sb-foot"><span>Decision &middot; Unanimous</span><span>UFC Fight Night</span></div>
+      @foreach($f['cards'] as $card)
+      <div class="sb-row"><div class="judge">{{ $card['judge'] }}</div><div class="red">{{ $card['red'] }}</div><div class="blue">{{ $card['blue'] }}</div></div>
+      @endforeach
+      <div class="sb-foot"><span>{{ $f['method'] }}</span><span>{{ \Illuminate\Support\Str::limit($f['event'], 34) }}</span></div>
     </div>
   </div>
 </section>

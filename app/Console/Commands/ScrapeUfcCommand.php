@@ -9,6 +9,7 @@ class ScrapeUfcCommand extends Command
 {
     protected $signature = 'ufc:scrape
         {--all : Full backfill of every known event}
+        {--latest= : Scrape the N most recent events}
         {--event= : Scrape a single event by its ufcstats id}
         {--fighter= : Scrape a single fighter by its ufcstats id}
         {--refresh-fighters : Re-fetch fighter profiles even if recently scraped}';
@@ -33,9 +34,11 @@ class ScrapeUfcCommand extends Command
             return $fighter ? self::SUCCESS : self::FAILURE;
         }
 
-        $run = $this->option('all')
-            ? $scraper->full()
-            : $scraper->incremental();
+        $run = match (true) {
+            $this->option('all') !== false && $this->option('all') => $scraper->full(),
+            (bool) $this->option('latest') => $scraper->latest((int) $this->option('latest')),
+            default => $scraper->incremental(),
+        };
 
         $this->table(
             ['Type', 'Status', 'Events', 'Fights', 'Fighters', 'Errors'],
