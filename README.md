@@ -5,25 +5,25 @@
 ![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20)
 
 A hosted, open-source REST API exposing the **full depth** of [ufcstats.com](http://ufcstats.com)
-data — every event, fight, fighter, **round-by-round statistic**, significant-strike
-**target/position breakdown**, and **judge scorecard** — through a clean, documented, queryable
+data covering every event, fight, fighter, **round-by-round statistic**, significant-strike
+**target/position breakdown**, and **judge scorecard**, through a clean, documented, queryable
 interface.
 
 ## Why this exists
 
 The existing landscape splits two ways: detailed **datasets** (rich CSV dumps, no API) and
-**APIs** (shallow — fighters and rankings only, no round-by-round depth). ufcstats is the hard
+**APIs** (shallow: fighters and rankings only, no round-by-round depth). ufcstats is the hard
 ceiling on detail; nobody can have *more* data than the source. The gap is turning that depth
 into a well-built, queryable API. That's this project.
 
 What it does that others don't:
 
-- **Round-by-round stats**, queryable and relational — not just fight totals.
+- **Round-by-round stats**, queryable and relational, not just fight totals.
 - **Significant-strike breakdown** by target (head / body / leg) and position
   (distance / clinch / ground), per round.
 - **Judge scorecards**, mapped to the correct fighter. *(ufcstats lists scores as
   `loser - winner`, not by corner; naive scrapers assign them positionally and corrupt ~half
-  their scorecards. We map by the bout winner — verified across unanimous and split decisions.)*
+  their scorecards. We map by the bout winner, verified across unanimous and split decisions.)*
 - Full fight metadata: referee, finish detail, time format, bout order, title-bout flag.
 - Stable IDs that match ufcstats, so you can always cross-reference the source.
 
@@ -35,12 +35,12 @@ Base path: `/v1`. Responses are JSON. List endpoints are paginated (`data` + `me
 |---|---|---|
 | `POST` | `/v1/register` | Get a free API key |
 | `GET` | `/v1/health` | Service health + row counts (public) |
-| `GET` | `/v1/events` | List events — `?status= &from= &to= &search= &sort=-date &per_page=` |
+| `GET` | `/v1/events` | List events: `?status= &from= &to= &search= &sort=-date &per_page=` |
 | `GET` | `/v1/events/{id}` | Event + its bouts |
-| `GET` | `/v1/fighters` | List/search fighters — `?search= &stance= &sort=name` |
+| `GET` | `/v1/fighters` | List/search fighters: `?search= &stance= &sort=name` |
 | `GET` | `/v1/fighters/{id}` | Fighter profile + career averages |
 | `GET` | `/v1/fighters/{id}/fights` | A fighter's bout history |
-| `GET` | `/v1/fights` | List fights — `?event_id= &fighter_id= &method= &weight_class= &is_title_bout=` |
+| `GET` | `/v1/fights` | List fights: `?event_id= &fighter_id= &method= &weight_class= &is_title_bout=` |
 | `GET` | `/v1/fights/{id}` | **Full fight**: corners, scorecards, totals + per-round breakdown |
 
 Interactive docs (OpenAPI / Swagger + "try it out") live at **`/docs`**.
