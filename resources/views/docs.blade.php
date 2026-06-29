@@ -33,7 +33,7 @@
   <a href="/" class="brand"><span class="mark"></span>UFC&middot;API <small>DOCS</small></a>
   <div class="top-links">
     <a href="/">← Home</a>
-    <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/mostafa-amine/ufc-api" target="_blank" rel="noopener">GitHub</a>
     <a href="/docs/openapi.yaml">OpenAPI</a>
   </div>
 </div>

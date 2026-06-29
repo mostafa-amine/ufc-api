@@ -170,7 +170,7 @@
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#endpoints">Endpoints</a>
-      <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/mostafa-amine/ufc-api" target="_blank" rel="noopener">GitHub</a>
       <a href="/docs" class="btn btn-ghost">Read the docs</a>
     </div>
   </div>
@@ -304,7 +304,7 @@
     </p>
     <div class="foot-links">
       <a href="/docs">Docs</a>
-      <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/mostafa-amine/ufc-api" target="_blank" rel="noopener">GitHub</a>
       <a href="/v1/health">Status</a>
     </div>
   </div>

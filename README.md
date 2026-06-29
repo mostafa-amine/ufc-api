@@ -132,7 +132,7 @@ Built for [Laravel Herd](https://herd.laravel.com) (bundled PHP 8.3 + MySQL), wh
 the project at `http://ufc-api.test`.
 
 ```bash
-git clone <repo> && cd ufc-api
+git clone https://github.com/mostafa-amine/ufc-api.git && cd ufc-api
 composer install
 cp .env.example .env && php artisan key:generate
 
