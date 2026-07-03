@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Scraping\PageFetcher;
 use App\Scraping\UfcStatsClient;
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -24,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // API-only app: never redirect unauthenticated requests to a (non-existent)
+        // `login` route. Guests always get the JSON 401 envelope instead of a 500.
+        Authenticate::redirectUsing(fn () => null);
+
         // Per-key rate limiting, tier-aware. Free tier: 60 req/min.
         RateLimiter::for('api', function (Request $request) {
             $user = $request->user();

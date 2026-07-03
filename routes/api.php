@@ -5,9 +5,10 @@ use App\Http\Controllers\Api\V1\FightController;
 use App\Http\Controllers\Api\V1\FighterController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\RegisterController;
+use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware(ForceJsonResponse::class)->group(function () {
     // Public.
     Route::get('health', [HealthController::class, 'show']);
     Route::post('register', [RegisterController::class, 'store'])->middleware('throttle:6,1');

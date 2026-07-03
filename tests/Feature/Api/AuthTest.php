@@ -38,6 +38,14 @@ it('blocks unauthenticated access to data endpoints', function () {
         ->assertJsonPath('error.code', 'unauthenticated');
 });
 
+it('returns a JSON 401 even when the client omits the Accept header', function () {
+    // A bare request (no Accept: application/json) previously fell through to the
+    // non-existent `login` route and 500'd. ForceJsonResponse keeps it a clean 401.
+    $this->get('/v1/fighters')
+        ->assertStatus(401)
+        ->assertJsonPath('error.code', 'unauthenticated');
+});
+
 it('allows public access to health without a key', function () {
     $this->getJson('/v1/health')->assertOk();
 });
