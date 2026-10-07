@@ -77,17 +77,26 @@ it('links the OpenAPI file next to the intro, not in the top nav', function () {
 });
 
 it('serves the OpenAPI file the link points to', function () {
-    $path = storage_path('app/private/scribe/openapi.yaml');
-    $existed = is_file($path);
-    if (! $existed) {
-        @mkdir(dirname($path), 0777, true);
-        file_put_contents($path, "openapi: 3.0.3\n");
-    }
+    // A throwaway storage folder, so the test never touches the real generated spec.
+    $storage = sys_get_temp_dir().'/docs-openapi-'.uniqid();
+    mkdir($storage.'/app/private/scribe', 0777, true);
+    $spec = "openapi: 3.0.3\ninfo:\n  title: 'Spec served by the docs link'\n";
+    file_put_contents($storage.'/app/private/scribe/openapi.yaml', $spec);
+    $realStorage = storage_path();
+    $this->app->useStoragePath($storage);
 
-    $this->get('/docs/openapi.yaml')->assertOk()->assertHeader('Content-Type', 'application/yaml');
+    try {
+        $response = $this->get('/docs/openapi.yaml');
 
-    if (! $existed) {
-        unlink($path);
+        $response->assertOk()->assertHeader('Content-Type', 'application/yaml');
+        expect($response->getContent())->toBe($spec);
+    } finally {
+        $this->app->useStoragePath($realStorage);
+        unlink($storage.'/app/private/scribe/openapi.yaml');
+        rmdir($storage.'/app/private/scribe');
+        rmdir($storage.'/app/private');
+        rmdir($storage.'/app');
+        rmdir($storage);
     }
 });
 
