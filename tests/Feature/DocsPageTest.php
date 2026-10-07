@@ -65,3 +65,28 @@ it('keeps the code font for code only', function () {
     preg_match_all('#<(?!code)[a-z]+[^>]*style="[^"]*Plex Mono#', $html, $mono);
     expect($mono[0])->toBe([]);
 });
+
+it('links the OpenAPI file next to the intro, not in the top nav', function () {
+    $html = $this->get('/docs')->getContent();
+
+    // RapiDoc places the "overview" slot right under the API title, before the intro text.
+    expect($html)->toMatch('#<div slot="overview"[^>]*>\s*<a href="/docs/openapi.yaml"[^>]*>OpenAPI file</a>#');
+
+    preg_match('#<nav class="site-nav">.*?</nav>#s', $html, $nav);
+    expect($nav[0])->not->toContain('openapi.yaml');
+});
+
+it('serves the OpenAPI file the link points to', function () {
+    $path = storage_path('app/private/scribe/openapi.yaml');
+    $existed = is_file($path);
+    if (! $existed) {
+        @mkdir(dirname($path), 0777, true);
+        file_put_contents($path, "openapi: 3.0.3\n");
+    }
+
+    $this->get('/docs/openapi.yaml')->assertOk()->assertHeader('Content-Type', 'application/yaml');
+
+    if (! $existed) {
+        unlink($path);
+    }
+});

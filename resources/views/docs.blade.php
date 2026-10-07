@@ -61,6 +61,9 @@
   use-path-in-nav-bar="true"
   fill-request-fields-with-example="true"
 >
+  <div slot="overview" style="font-family:'Archivo',sans-serif;font-size:16px;margin:8px 0 4px">
+    <a href="/docs/openapi.yaml" style="color:#C41E26;font-weight:600">OpenAPI file</a>
+  </div>
   <div slot="auth" style="font-family:'Archivo',sans-serif;font-size:16px;line-height:1.5;color:#3A3732;padding:6px 0">
     Get a free key from <code style="color:#C41E26">POST /v1/register</code>, then send it as a Bearer token.
   </div>
