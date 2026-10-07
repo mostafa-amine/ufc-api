@@ -2,7 +2,6 @@
 
 use App\Models\Event;
 use App\Models\Fight;
-use App\Models\Fighter;
 use App\Models\RoundStat;
 use App\Models\Scorecard;
 use App\Scraping\PageFetcher;
@@ -13,7 +12,7 @@ use Tests\Support\FakePageFetcher;
 uses(RefreshDatabase::class);
 
 /** A finished bout with stats for both corners (totals + each round) and three cards. */
-function landingDecision(Event $event, int $boutOrder, string $red, string $blue, int $rounds = 3, string $method = 'Decision - Unanimous'): Fight
+function landingDecision(Event $event, int $boutOrder, string $method, int $rounds = 3): Fight
 {
     $fight = Fight::factory()->for($event)->create([
         'bout_order' => $boutOrder,
@@ -21,8 +20,6 @@ function landingDecision(Event $event, int $boutOrder, string $red, string $blue
         'scheduled_rounds' => $rounds,
         'time_format_raw' => $rounds.' Rnd ('.implode('-', array_fill(0, $rounds, 5)).')',
         'end_round' => $rounds,
-        'red_fighter_id' => Fighter::factory()->create(['name' => $red, 'nickname' => null]),
-        'blue_fighter_id' => Fighter::factory()->create(['name' => $blue, 'nickname' => null]),
     ]);
 
     foreach ([$fight->red_fighter_id, $fight->blue_fighter_id] as $fighterId) {
@@ -35,50 +32,57 @@ function landingDecision(Event $event, int $boutOrder, string $red, string $blue
     return $fight;
 }
 
+/** The fight the page features, read from its closing "one request" example. */
+function featuredFightId(string $html): ?string
+{
+    return preg_match_all('#/v1/fights/([a-f0-9]{16})#', $html, $m) === 1 ? $m[1][0] : null;
+}
+
 describe('which fight the landing page shows', function () {
     it('shows the decision highest on the card of the latest event', function () {
-        $older = Event::factory()->create(['date' => '2026-09-01']);
-        landingDecision($older, 1, 'Old Redcorner', 'Old Bluecorner');
+        landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
 
         $latest = Event::factory()->create(['date' => '2026-09-20']);
         Fight::factory()->for($latest)->create(['bout_order' => 1, 'method' => 'KO/TKO']);
-        landingDecision($latest, 8, 'Eight Redcorner', 'Eight Bluecorner');
-        landingDecision($latest, 2, 'Two Redcorner', 'Two Bluecorner');
-        landingDecision($latest, 5, 'Five Redcorner', 'Five Bluecorner');
+        landingDecision($latest, 8, 'Decision - Unanimous');
+        $two = landingDecision($latest, 2, 'Decision - Unanimous');
+        landingDecision($latest, 5, 'Decision - Unanimous');
 
-        $this->get('/')->assertOk()
-            ->assertSee('Redcorner')
-            ->assertSee('Two')
-            ->assertDontSee('Five Redcorner')
-            ->assertDontSee('Eight')
-            ->assertDontSee('Old Redcorner');
+        $html = $this->get('/')->assertOk()->getContent();
+
+        expect(featuredFightId($html))->toBe($two->ufcstats_id);
     });
 
     it('moves to the newer decision once a newer event is scraped', function () {
-        landingDecision(Event::factory()->create(['date' => '2026-09-01']), 3, 'First Shown', 'First Opponent');
-        $this->get('/')->assertSee('Shown')->assertSee('First');
+        $first = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 3, 'Decision - Unanimous');
+        expect(featuredFightId($this->get('/')->getContent()))->toBe($first->ufcstats_id);
 
-        landingDecision(Event::factory()->create(['date' => '2026-09-08']), 4, 'Later Winner', 'Later Opponent');
+        $later = landingDecision(Event::factory()->create(['date' => '2026-09-08']), 4, 'Decision - Unanimous');
 
-        $this->get('/')->assertSee('Later')->assertDontSee('First');
+        expect(featuredFightId($this->get('/')->getContent()))->toBe($later->ufcstats_id);
     });
 
     it('skips a newer event whose bouts all ended before the judges', function () {
-        landingDecision(Event::factory()->create(['date' => '2026-09-01']), 3, 'Judged Redcorner', 'Judged Bluecorner');
+        $judged = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 3, 'Decision - Unanimous');
         $finishes = Event::factory()->create(['date' => '2026-09-08']);
         Fight::factory()->for($finishes)->create(['bout_order' => 1, 'method' => 'KO/TKO']);
         Fight::factory()->for($finishes)->create(['bout_order' => 2, 'method' => 'Submission']);
 
-        $this->get('/')->assertSee('Judged');
+        expect(featuredFightId($this->get('/')->getContent()))->toBe($judged->ufcstats_id);
     });
 
     it('counts split and majority decisions as going to the judges', function () {
-        landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Unanimous Redcorner', 'Unanimous Bluecorner');
-        landingDecision(Event::factory()->create(['date' => '2026-09-08']), 1, 'Split Redcorner', 'Split Bluecorner', method: 'Decision - Split');
+        landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
+        $split = landingDecision(Event::factory()->create(['date' => '2026-09-08']), 1, 'Decision - Split');
+        $majority = landingDecision(Event::factory()->create(['date' => '2026-09-15']), 1, 'Decision - Majority');
 
-        $this->get('/')->assertSee('Split decision')->assertSee('Split')->assertDontSee('Unanimous');
+        $response = $this->get('/')->assertSee('Majority decision');
+        expect(featuredFightId($response->getContent()))->toBe($majority->ufcstats_id);
+
+        $majority->delete();
+        $response = $this->get('/')->assertSee('Split decision');
+        expect(featuredFightId($response->getContent()))->toBe($split->ufcstats_id);
     });
-
 });
 
 describe('with no judges\' decision in the database', function () {
@@ -185,14 +189,14 @@ describe('the tale of the tape', function () {
 });
 
 it('shows a fighter\'s nickname after the first name', function () {
-    $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Brunno Ferreira', 'Other Fighter');
-    $fight->redFighter->update(['nickname' => 'The Hulk']);
+    $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
+    $fight->redFighter->update(['name' => 'Brunno Ferreira', 'nickname' => 'The Hulk']);
 
     $this->get('/')->assertSeeInOrder(['Brunno “The Hulk”', 'Ferreira']);
 });
 
 it('shows Round 1 to Round 5 for a five-round decision', function () {
-    landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Main Redcorner', 'Main Bluecorner', rounds: 5);
+    landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous', rounds: 5);
 
     $this->get('/')
         ->assertSee('5 × 5 min')
