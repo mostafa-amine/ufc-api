@@ -90,3 +90,17 @@ it('serves the OpenAPI file the link points to', function () {
         unlink($path);
     }
 });
+
+it('shows the selected server label in Archivo and only the URL in the code font', function () {
+    $html = $this->get('/docs')->getContent();
+
+    // RapiDoc prints "SELECTED: <url>" as one text node in the code font, so its line is hidden...
+    expect($html)->toMatch('#rapi-doc::part\(label-selected-server\)\{display:none\}#');
+
+    // ...and redrawn in the "servers" slot: label in Archivo 16px, URL alone in <code>.
+    expect($html)->toMatch('#<div slot="servers" id="selected-server" style="[^"]*font-family:\'Archivo\'[^"]*font-size:16px[^"]*">SELECTED: <code[^>]*>[^<]*</code></div>#');
+
+    // The URL follows RapiDoc's choice: set once the spec loads and on every server change.
+    expect($html)->toContain("addEventListener('spec-loaded'")
+        ->toContain("addEventListener('api-server-change'");
+});

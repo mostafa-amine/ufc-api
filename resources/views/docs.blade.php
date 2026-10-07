@@ -25,6 +25,8 @@
   rapi-doc::part(section-navbar){border-right:1px solid var(--rule)}
   /* The nav filter is a search box, not code. */
   rapi-doc::part(textbox-nav-filter){font-family:'Archivo',sans-serif}
+  /* RapiDoc prints "SELECTED: <url>" as one code-font text node; it is redrawn in the servers slot below. */
+  rapi-doc::part(label-selected-server){display:none}
 </style>
 </head>
 <body>
@@ -64,11 +66,22 @@
   <div slot="overview" style="font-family:'Archivo',sans-serif;font-size:16px;margin:8px 0 4px">
     <a href="/docs/openapi.yaml" style="color:#C41E26;font-weight:600">OpenAPI file</a>
   </div>
+  <div slot="servers" id="selected-server" style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#C41E26;margin:-4px 0 12px">SELECTED: <code style="font-family:'IBM Plex Mono',monospace;font-size:15px"></code></div>
   <div slot="auth" style="font-family:'Archivo',sans-serif;font-size:16px;line-height:1.5;color:#3A3732;padding:6px 0">
     Get a free key from <code style="color:#C41E26">POST /v1/register</code>, then send it as a Bearer token.
   </div>
 </rapi-doc>
 
+<script>
+  // Keep the redrawn "SELECTED:" line in step with the server RapiDoc has chosen.
+  (() => {
+    const doc = document.querySelector('rapi-doc');
+    const url = document.querySelector('#selected-server code');
+    const show = (server) => { url.textContent = server ? (server.computedUrl || server.url) : 'none'; };
+    doc.addEventListener('spec-loaded', () => show(doc.selectedServer));
+    doc.addEventListener('api-server-change', (e) => show(e.detail.selectedServer));
+  })();
+</script>
 <script type="module" src="https://unpkg.com/rapidoc@9.3.4/dist/rapidoc-min.js"></script>
 </body>
 </html>
