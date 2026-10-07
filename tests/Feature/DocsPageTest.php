@@ -42,3 +42,26 @@ it('keeps the docs content and the try-it feature as they are', function () {
         ->not->toContain('allow-try="false"')
         ->toContain('Get a free key from <code');
 });
+
+it('sets all reading text in Archivo at one 16px size', function () {
+    $html = $this->get('/docs')->getContent();
+
+    // RapiDoc sizes every description, label and table cell from these three variables.
+    expect($html)->toContain('--font-size-regular:16px')
+        ->toContain('--font-size-small:16px')
+        ->toContain('regular-font="\'Archivo\'');
+
+    preg_match('#<div slot="auth" style="([^"]*)"#', $html, $slot);
+    expect($slot[1] ?? '')->toContain("font-family:'Archivo'")->toContain('font-size:16px');
+});
+
+it('keeps the code font for code only', function () {
+    $html = $this->get('/docs')->getContent();
+
+    expect($html)->toContain('mono-font="\'IBM Plex Mono\'')
+        ->toContain('--font-size-mono:15px');
+
+    // Outside RapiDoc's own code, only the inline <code> sample uses the code font.
+    preg_match_all('#<(?!code)[a-z]+[^>]*style="[^"]*Plex Mono#', $html, $mono);
+    expect($mono[0])->toBe([]);
+});

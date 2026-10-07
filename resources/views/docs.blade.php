@@ -15,8 +15,16 @@
   body{display:flex; flex-direction:column; overflow:hidden; color:var(--ink)}
   .site-nav{flex:0 0 auto; width:100%}
   .nav-wrap{border-bottom:2px solid var(--ink)}
-  rapi-doc{flex:1 1 auto; width:100%}
+  /* RapiDoc's own sizes are 13-15px and mixed; one reading size everywhere instead.
+     Rules on the host beat the :host defaults inside its shadow DOM, and the
+     variables inherit into every nested RapiDoc component. */
+  rapi-doc{flex:1 1 auto; width:100%; --font-size-regular:16px; --font-size-small:16px; --font-size-mono:15px}
+  /* Wider than RapiDoc's 260px so the 16px nav paths fit; the search button sizes to its text. */
+  @media (min-width:768px){ rapi-doc::part(section-navbar){width:380px; min-width:380px} }
+  rapi-doc::part(btn-search){width:auto}
   rapi-doc::part(section-navbar){border-right:1px solid var(--rule)}
+  /* The nav filter is a search box, not code. */
+  rapi-doc::part(textbox-nav-filter){font-family:'Archivo',sans-serif}
 </style>
 </head>
 <body>
@@ -53,7 +61,7 @@
   use-path-in-nav-bar="true"
   fill-request-fields-with-example="true"
 >
-  <div slot="auth" style="font-family:'Archivo',sans-serif;font-size:13px;color:#55524C;padding:6px 0">
+  <div slot="auth" style="font-family:'Archivo',sans-serif;font-size:16px;line-height:1.5;color:#3A3732;padding:6px 0">
     Get a free key from <code style="color:#C41E26">POST /v1/register</code>, then send it as a Bearer token.
   </div>
 </rapi-doc>
