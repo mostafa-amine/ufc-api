@@ -20,12 +20,6 @@
   a{color:var(--ink)} a:hover{color:var(--red)}
   button{font:inherit}
 
-  nav{max-width:1240px; margin:0 auto; padding:22px 24px; display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; align-items:center}
-  .brand{font-weight:800; font-size:20px; text-decoration:none}
-  .brand span{font-weight:400; font-size:14px; color:var(--muted)}
-  .nav-links{display:flex; gap:28px; font-size:15px; font-weight:500; align-items:center; flex-wrap:wrap}
-  .key-btn{display:inline-flex; align-items:center; min-height:44px; padding:0 18px; background:var(--ink); color:var(--paper); text-decoration:none}
-  .key-btn:hover{color:var(--paper); background:var(--red)}
 
   .corners{position:relative; display:flex; flex-wrap:wrap}
   .corner{flex:1 1 360px; color:#fff; padding:72px 40px 84px; display:flex; flex-direction:column; justify-content:flex-end; gap:6px}
@@ -96,14 +90,7 @@
 </head>
 <body>
 
-<nav>
-  <a href="/" class="brand">UFC API <span>unofficial · open source</span></a>
-  <div class="nav-links">
-    <a href="/docs">Docs</a>
-    <a href="https://github.com/mostafa-amine/ufc-api" target="_blank" rel="noopener">GitHub</a>
-    <a href="/docs" class="key-btn">Get a free key</a>
-  </div>
-</nav>
+@include('partials.site-nav')
 
 @if ($tape)
 @php($full = $tape['periods'][0])
