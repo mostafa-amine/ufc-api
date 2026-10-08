@@ -26,13 +26,17 @@ final readonly class BuildTaleOfTheTape
 
         $red = $api['stats']['red'];
         $blue = $api['stats']['blue'];
-        $roundCount = max(count($red['rounds']), count($blue['rounds']));
+        // Keyed by round number: a round that failed to scrape for one corner is missing
+        // from its list, so list positions can't be trusted to line the corners up.
+        $redRounds = array_column($red['rounds'], null, 'round');
+        $blueRounds = array_column($blue['rounds'], null, 'round');
+        $roundCount = max([0, ...array_keys($redRounds), ...array_keys($blueRounds)]);
         $redName = $this->name($api['red']);
         $blueName = $this->name($api['blue']);
 
         $periods = [$this->period('Full fight', 'full fight', $red['total'], $blue['total'], $redName, $blueName)];
         for ($n = 1; $n <= $roundCount; $n++) {
-            $periods[] = $this->period("Round {$n}", "round {$n}", $red['rounds'][$n - 1] ?? null, $blue['rounds'][$n - 1] ?? null, $redName, $blueName);
+            $periods[] = $this->period("Round {$n}", "round {$n}", $redRounds[$n] ?? null, $blueRounds[$n] ?? null, $redName, $blueName);
         }
 
         return [
@@ -43,7 +47,7 @@ final readonly class BuildTaleOfTheTape
             'scores' => implode(' · ', array_map(fn ($c) => "{$c['red']}–{$c['blue']}", $api['scorecards'])),
             'meta' => $this->meta($api),
             'periods' => $periods,
-            'rounds' => $this->roundChart($red['rounds'], $blue['rounds'], $roundCount),
+            'rounds' => $this->roundChart($redRounds, $blueRounds, $roundCount),
             'ufcstats_printed' => $this->ufcstatsPrinted($api),
             'request' => $this->requestExcerpt($api),
         ];
@@ -164,22 +168,23 @@ final readonly class BuildTaleOfTheTape
         ], array_keys($kinds), $values, array_values($kinds));
     }
 
+    /** @param  array<int, array>  $red  rounds keyed by round number (same for $blue) */
     private function roundChart(array $red, array $blue, int $count): array
     {
-        $landed = fn (array $rounds, int $i) => (int) ($rounds[$i]['sig_str']['landed'] ?? 0);
+        $landed = fn (array $rounds, int $n) => (int) ($rounds[$n]['sig_str']['landed'] ?? 0);
         $peak = 1;
-        for ($i = 0; $i < $count; $i++) {
-            $peak = max($peak, $landed($red, $i), $landed($blue, $i));
+        for ($n = 1; $n <= $count; $n++) {
+            $peak = max($peak, $landed($red, $n), $landed($blue, $n));
         }
 
         $chart = [];
-        for ($i = 0; $i < $count; $i++) {
+        for ($n = 1; $n <= $count; $n++) {
             $chart[] = [
-                'n' => $i + 1,
-                'red' => $landed($red, $i),
-                'blue' => $landed($blue, $i),
-                'red_height' => (int) round($landed($red, $i) / $peak * 130),
-                'blue_height' => (int) round($landed($blue, $i) / $peak * 130),
+                'n' => $n,
+                'red' => $landed($red, $n),
+                'blue' => $landed($blue, $n),
+                'red_height' => (int) round($landed($red, $n) / $peak * 130),
+                'blue_height' => (int) round($landed($blue, $n) / $peak * 130),
             ];
         }
 

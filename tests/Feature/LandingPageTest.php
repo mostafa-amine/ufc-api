@@ -203,3 +203,31 @@ it('shows Round 1 to Round 5 for a five-round decision', function () {
         ->assertSeeInOrder(['Full fight', 'Round 1', 'Round 2', 'Round 3', 'Round 4', 'Round 5'])
         ->assertDontSee('Round 6');
 });
+
+it('matches rounds by number when one corner is missing a round', function () {
+    $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
+    $stat = fn (int $fighterId, int $round) => RoundStat::where(['fight_id' => $fight->id, 'fighter_id' => $fighterId, 'round' => $round]);
+    foreach ([1 => 11, 2 => 12, 3 => 13] as $round => $landed) {
+        $stat($fight->red_fighter_id, $round)->update(['sig_str_landed' => $landed]);
+    }
+    $stat($fight->blue_fighter_id, 1)->update(['sig_str_landed' => 21]);
+    $stat($fight->blue_fighter_id, 3)->update(['sig_str_landed' => 23]);
+    $stat($fight->blue_fighter_id, 2)->delete();
+
+    $tape = $this->get('/')->viewData('tape');
+
+    expect(array_column($tape['periods'], 'label'))->toBe(['Full fight', 'Round 1', 'Round 2', 'Round 3'])
+        ->and($tape['periods'][2]['rows'][0])->toMatchArray(['red' => '12', 'blue' => '0'])
+        ->and($tape['periods'][3]['rows'][0])->toMatchArray(['red' => '13', 'blue' => '23'])
+        ->and(array_map(fn ($r) => [$r['n'], $r['red'], $r['blue']], $tape['rounds']))->toBe([[1, 11, 21], [2, 12, 0], [3, 13, 23]]);
+});
+
+it('counts rounds up to the highest round number present', function () {
+    $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
+    RoundStat::where(['fight_id' => $fight->id, 'round' => 2])->delete();
+
+    $tape = $this->get('/')->viewData('tape');
+
+    expect(array_column($tape['periods'], 'label'))->toBe(['Full fight', 'Round 1', 'Round 2', 'Round 3'])
+        ->and(array_column($tape['rounds'], 'n'))->toBe([1, 2, 3]);
+});
