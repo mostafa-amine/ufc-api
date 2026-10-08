@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
+    /** List events */
     public function index(Request $request)
     {
         $request->validate([
@@ -32,6 +33,7 @@ class EventController extends Controller
         return EventSummaryResource::collection($events);
     }
 
+    /** Get an event */
     public function show(Event $event)
     {
         $event->load(['fights.redFighter', 'fights.blueFighter']);

@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 class RegisterController extends Controller
 {
     /**
+     * Register for an API key
+     *
      * Register and receive a free API key. Send it as `Authorization: Bearer <key>`.
      */
     public function store(Request $request): JsonResponse
