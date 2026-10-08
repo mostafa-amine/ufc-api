@@ -60,7 +60,7 @@
   allow-authentication="true"
   persist-auth="true"
   show-method-in-nav-bar="as-colored-text"
-  use-path-in-nav-bar="true"
+  use-path-in-nav-bar="false"
   fill-request-fields-with-example="true"
 >
   <div slot="overview" style="font-family:'Archivo',sans-serif;font-size:16px;margin:8px 0 4px">

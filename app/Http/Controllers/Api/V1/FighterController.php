@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 
 class FighterController extends Controller
 {
+    /** List fighters */
     public function index(Request $request)
     {
         $request->validate([
@@ -31,11 +32,13 @@ class FighterController extends Controller
         return FighterResource::collection($fighters);
     }
 
+    /** Get a fighter */
     public function show(Fighter $fighter)
     {
         return new FighterResource($fighter);
     }
 
+    /** Get a fighter's fights */
     public function fights(Request $request, Fighter $fighter)
     {
         $fights = Fight::query()

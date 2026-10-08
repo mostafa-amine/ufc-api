@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 
 class HealthController extends Controller
 {
+    /** Check the API status */
     public function show(): JsonResponse
     {
         $lastRun = ScrapeRun::query()->latest('id')->first();

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 
 class FightController extends Controller
 {
+    /** List fights */
     public function index(Request $request)
     {
         $request->validate([
@@ -46,6 +47,7 @@ class FightController extends Controller
         return FightSummaryResource::collection($fights);
     }
 
+    /** Get a fight */
     public function show(Fight $fight)
     {
         $fight->load(['event', 'redFighter', 'blueFighter', 'winner', 'roundStats', 'scorecards']);
