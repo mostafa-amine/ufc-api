@@ -63,6 +63,7 @@
   .seg.red.s0{background:#C41E26; color:#fff} .seg.red.s1{background:#E0767B} .seg.red.s2{background:#F2C2C4}
   .seg.blue.s0{background:#1F4FD1; color:#fff} .seg.blue.s1{background:#7F9BE7} .seg.blue.s2{background:#C6D3F5}
   .seg.s1,.seg.s2{color:var(--ink)}
+  .stack.unknown .seg{display:none}
   .legend{display:flex; gap:14px; flex-wrap:wrap; margin:6px 0 14px; font-family:var(--mono); font-size:12px; color:var(--soft)}
   .legend b{font-weight:500; color:var(--ink)}
 
@@ -147,14 +148,14 @@
         <div class="map-title">{{ $map['title'] }}</div>
         @foreach ($map['corners'] as $c => $corner)
         <div data-map="{{ $m }}" data-corner="{{ $c }}">
-          <div class="stack">
+          <div class="stack {{ $corner['known'] ? '' : 'unknown' }}">
             @foreach ($corner['parts'] as $s => $part)
               <div class="seg {{ $corner['corner'] }} s{{ $s }}" style="flex: {{ $part['value'] ?: 0.0001 }} 1 0">{{ $part['short'] }}</div>
             @endforeach
           </div>
           <div class="legend">
             <b>{{ $corner['name'] }}</b>
-            @foreach ($corner['parts'] as $part)<span>{{ $part['label'] }} {{ $part['value'] }}</span>@endforeach
+            @foreach ($corner['parts'] as $part)<span>{{ $part['label'] }} {{ $part['shown'] }}</span>@endforeach
           </div>
         </div>
         @endforeach
@@ -173,7 +174,7 @@
           <span class="col red" style="height: {{ $round['red_height'] }}px"></span>
           <span class="col blue" style="height: {{ $round['blue_height'] }}px"></span>
         </span>
-        <span class="round-foot"><span class="r">{{ $round['red'] }}</span><span class="n">Round {{ $round['n'] }}</span><span class="b">{{ $round['blue'] }}</span></span>
+        <span class="round-foot"><span class="r">{{ $round['red'] ?? '–' }}</span><span class="n">Round {{ $round['n'] }}</span><span class="b">{{ $round['blue'] ?? '–' }}</span></span>
       </button>
       @endforeach
     </div>
@@ -238,12 +239,13 @@
       });
       p.maps.forEach((map, m) => map.corners.forEach((corner, c) => {
         const el = document.querySelector(`[data-map="${m}"][data-corner="${c}"]`);
+        el.querySelector('.stack').classList.toggle('unknown', !corner.known);
         const segs = el.querySelectorAll('.seg');
         const legend = el.querySelectorAll('.legend span');
         corner.parts.forEach((part, s) => {
           segs[s].style.flex = `${part.value || 0.0001} 1 0`;
           segs[s].textContent = part.short;
-          legend[s].textContent = `${part.label} ${part.value}`;
+          legend[s].textContent = `${part.label} ${part.shown}`;
         });
       }));
     };

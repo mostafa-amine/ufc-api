@@ -140,3 +140,8 @@ it('gives every API endpoint a name for the menu', function () {
 
     expect($names['POST v1/register'])->toBe('Register for an API key');
 });
+
+it('sets the left-menu endpoint names at the same 16px as the rest', function () {
+    // RapiDoc draws menu entries one pixel larger than its small size (17px here).
+    expect($this->get('/docs')->getContent())->toContain('rapi-doc::part(section-navbar-path){font-size:16px}');
+});

@@ -22,6 +22,8 @@
   /* Wider than RapiDoc's 260px so the 16px nav paths fit; the search button sizes to its text. */
   @media (min-width:768px){ rapi-doc::part(section-navbar){width:380px; min-width:380px} }
   rapi-doc::part(btn-search){width:auto}
+  /* RapiDoc draws menu entries 1px above its small size; keep them at the one 16px. */
+  rapi-doc::part(section-navbar-path){font-size:16px}
   rapi-doc::part(section-navbar){border-right:1px solid var(--rule)}
   /* The nav filter is a search box, not code. */
   rapi-doc::part(textbox-nav-filter){font-family:'Archivo',sans-serif}

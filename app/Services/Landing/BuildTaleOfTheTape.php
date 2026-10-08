@@ -104,27 +104,33 @@ final readonly class BuildTaleOfTheTape
         ]));
     }
 
+    /** A null corner means that corner has no stats for this period: every value is unknown. */
     private function period(string $label, string $phrase, ?array $r, ?array $b, array $redName, array $blueName): array
     {
-        $r ??= $this->emptyStats();
-        $b ??= $this->emptyStats();
-        $pct = fn (array $s) => $s['attempted'] > 0 ? $s['pct'].'%' : '–';
+        // Unknown stays null (shown as "–", no bar); it is never turned into 0.
+        $get = fn (?array $stats, string $path) => $stats === null ? null : data_get($stats, $path);
+        $count = fn (?int $value) => $value === null ? null : (string) $value;
+        $pct = fn (?array $s) => $s !== null && $s['sig_str']['attempted'] > 0 ? $s['sig_str']['pct'].'%' : '–';
+        $tally = fn (?array $s, string $key) => $s === null ? null : "{$s[$key]['landed']}/{$s[$key]['attempted']}";
+        $clock = fn (?int $seconds) => Format::clock($seconds);
+
+        $row = fn (string $name, string $path, callable $show, string $note = '') => $this->row(
+            $name, $get($r, $path), $get($b, $path), $show($r, $get($r, $path)), $show($b, $get($b, $path)), $note,
+        );
+        $plain = fn (?array $s, ?int $v) => $count($v);
 
         $rows = [
-            $this->row('Significant strikes', $r['sig_str']['landed'], $b['sig_str']['landed'], (string) $r['sig_str']['landed'], (string) $b['sig_str']['landed'],
-                $pct($r['sig_str']).' vs '.$pct($b['sig_str']).' accuracy'),
-            $this->row('Total strikes', $r['total_str']['landed'], $b['total_str']['landed'], (string) $r['total_str']['landed'], (string) $b['total_str']['landed']),
-            $this->row('Takedowns', $r['takedowns']['landed'], $b['takedowns']['landed'],
-                "{$r['takedowns']['landed']}/{$r['takedowns']['attempted']}", "{$b['takedowns']['landed']}/{$b['takedowns']['attempted']}"),
-            $this->row('Control time', (int) $r['control_time_sec'], (int) $b['control_time_sec'],
-                Format::clock((int) $r['control_time_sec']), Format::clock((int) $b['control_time_sec'])),
-            $this->row('Submission attempts', $r['sub_attempts'], $b['sub_attempts'], (string) $r['sub_attempts'], (string) $b['sub_attempts']),
-            $this->row('Knockdowns', $r['knockdowns'], $b['knockdowns'], (string) $r['knockdowns'], (string) $b['knockdowns']),
+            $row('Significant strikes', 'sig_str.landed', $plain, $pct($r).' vs '.$pct($b).' accuracy'),
+            $row('Total strikes', 'total_str.landed', $plain),
+            $row('Takedowns', 'takedowns.landed', fn (?array $s) => $tally($s, 'takedowns')),
+            $row('Control time', 'control_time_sec', fn (?array $s, ?int $v) => $clock($v)),
+            $row('Submission attempts', 'sub_attempts', $plain),
+            $row('Knockdowns', 'knockdowns', $plain),
         ];
 
         $corners = fn (string $group, array $kinds) => [
-            ['name' => $redName['last'], 'corner' => 'red', 'parts' => $this->parts($r[$group], $kinds)],
-            ['name' => $blueName['last'], 'corner' => 'blue', 'parts' => $this->parts($b[$group], $kinds)],
+            ['name' => $redName['last'], 'corner' => 'red', 'known' => $r !== null, 'parts' => $this->parts($r[$group] ?? null, $kinds)],
+            ['name' => $blueName['last'], 'corner' => 'blue', 'known' => $b !== null, 'parts' => $this->parts($b[$group] ?? null, $kinds)],
         ];
 
         return [
@@ -138,44 +144,51 @@ final readonly class BuildTaleOfTheTape
         ];
     }
 
-    /** One stat row; bars are each side's share of the larger value, the leader is drawn dark. */
-    private function row(string $label, int $red, int $blue, string $redShown, string $blueShown, string $note = ''): array
+    /**
+     * One stat row. Bars are each side's share of the larger known value; an unknown side
+     * shows "–" and no bar. Only a strictly larger number is drawn dark, so a tie (0–0
+     * included) or a comparison against an unknown side has no leader.
+     */
+    private function row(string $label, ?int $red, ?int $blue, ?string $redShown, ?string $blueShown, string $note = ''): array
     {
-        $max = max($red, $blue) ?: 1;
+        $max = max($red ?? 0, $blue ?? 0) ?: 1;
+        $bothKnown = $red !== null && $blue !== null;
 
         return [
             'label' => $label,
             'note' => $note,
-            'red' => $redShown,
-            'blue' => $blueShown,
-            'red_leads' => $red >= $blue,
-            'blue_leads' => $blue >= $red,
-            'red_width' => round($red / $max * 100, 2),
-            'blue_width' => round($blue / $max * 100, 2),
+            'red' => $redShown ?? '–',
+            'blue' => $blueShown ?? '–',
+            'red_leads' => $bothKnown && $red > $blue,
+            'blue_leads' => $bothKnown && $blue > $red,
+            'red_width' => $red === null ? 0 : round($red / $max * 100, 2),
+            'blue_width' => $blue === null ? 0 : round($blue / $max * 100, 2),
         ];
     }
 
-    /** Segments of a stacked bar; a segment too thin to read gets no inline label. */
-    private function parts(array $group, array $kinds): array
+    /** Segments of a stacked bar; a segment too thin to read gets no inline label. A null group is unknown. */
+    private function parts(?array $group, array $kinds): array
     {
-        $values = array_map(fn ($key) => (int) ($group[$key]['landed'] ?? 0), array_keys($kinds));
-        $total = array_sum($values) ?: 1;
+        $values = array_map(fn ($key) => $group === null ? null : (int) $group[$key]['landed'], array_keys($kinds));
+        $total = array_sum(array_map(fn ($v) => $v ?? 0, $values)) ?: 1;
 
         return array_map(fn ($key, $value, $names) => [
             'label' => $names[0],
             'value' => $value,
-            'short' => $value / $total > 0.12 ? "{$names[1]} {$value}" : '',
+            'shown' => $value === null ? '–' : (string) $value,
+            'short' => $value !== null && $value / $total > 0.12 ? "{$names[1]} {$value}" : '',
         ], array_keys($kinds), $values, array_values($kinds));
     }
 
-    /** @param  array<int, array>  $red  rounds keyed by round number (same for $blue) */
+    /** @param  array<int, array>  $red  rounds keyed by round number (same for $blue); a missing round is unknown */
     private function roundChart(array $red, array $blue, int $count): array
     {
-        $landed = fn (array $rounds, int $n) => (int) ($rounds[$n]['sig_str']['landed'] ?? 0);
+        $landed = fn (array $rounds, int $n) => isset($rounds[$n]) ? (int) $rounds[$n]['sig_str']['landed'] : null;
         $peak = 1;
         for ($n = 1; $n <= $count; $n++) {
-            $peak = max($peak, $landed($red, $n), $landed($blue, $n));
+            $peak = max($peak, $landed($red, $n) ?? 0, $landed($blue, $n) ?? 0);
         }
+        $height = fn (?int $value) => $value === null ? 0 : (int) round($value / $peak * 130);
 
         $chart = [];
         for ($n = 1; $n <= $count; $n++) {
@@ -183,8 +196,8 @@ final readonly class BuildTaleOfTheTape
                 'n' => $n,
                 'red' => $landed($red, $n),
                 'blue' => $landed($blue, $n),
-                'red_height' => (int) round($landed($red, $n) / $peak * 130),
-                'blue_height' => (int) round($landed($blue, $n) / $peak * 130),
+                'red_height' => $height($landed($red, $n)),
+                'blue_height' => $height($landed($blue, $n)),
             ];
         }
 
@@ -218,18 +231,6 @@ final readonly class BuildTaleOfTheTape
             'judge_blue' => $card['blue'] ?? null,
             'control_time_sec' => $red['total']['control_time_sec'] ?? null,
             'round_one_sig' => $red['rounds'][0]['sig_str']['landed'] ?? null,
-        ];
-    }
-
-    private function emptyStats(): array
-    {
-        $zero = ['landed' => 0, 'attempted' => 0, 'pct' => 0];
-
-        return [
-            'knockdowns' => 0, 'sig_str' => $zero, 'total_str' => $zero, 'takedowns' => $zero,
-            'sub_attempts' => 0, 'control_time_sec' => 0,
-            'targets' => ['head' => $zero, 'body' => $zero, 'leg' => $zero],
-            'positions' => ['distance' => $zero, 'clinch' => $zero, 'ground' => $zero],
         ];
     }
 }

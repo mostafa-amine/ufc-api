@@ -217,9 +217,56 @@ it('matches rounds by number when one corner is missing a round', function () {
     $tape = $this->get('/')->viewData('tape');
 
     expect(array_column($tape['periods'], 'label'))->toBe(['Full fight', 'Round 1', 'Round 2', 'Round 3'])
-        ->and($tape['periods'][2]['rows'][0])->toMatchArray(['red' => '12', 'blue' => '0'])
         ->and($tape['periods'][3]['rows'][0])->toMatchArray(['red' => '13', 'blue' => '23'])
-        ->and(array_map(fn ($r) => [$r['n'], $r['red'], $r['blue']], $tape['rounds']))->toBe([[1, 11, 21], [2, 12, 0], [3, 13, 23]]);
+        ->and(array_map(fn ($r) => [$r['n'], $r['red'], $r['blue']], $tape['rounds']))->toBe([[1, 11, 21], [2, 12, null], [3, 13, 23]])
+        ->and($tape['rounds'][1])->toMatchArray(['red_height' => 68, 'blue_height' => 0]);
+
+    // Blue has no round 2 at all: every blue value is unknown, red's still show.
+    $round2 = $tape['periods'][2];
+    expect($round2['rows'][0])->toMatchArray(['red' => '12', 'blue' => '–', 'note' => $round2['rows'][0]['note'], 'blue_width' => 0, 'red_width' => 100])
+        ->and(str_ends_with($round2['rows'][0]['note'], 'vs – accuracy'))->toBeTrue();
+    foreach ($round2['rows'] as $row) {
+        expect($row['blue'])->toBe('–')
+            ->and($row['blue_width'])->toBe(0)
+            ->and($row['red'])->not->toBe('–')
+            ->and($row['blue_leads'])->toBeFalse();
+    }
+    $blueTargets = $round2['maps'][0]['corners'][1];
+    expect($blueTargets['known'])->toBeFalse()
+        ->and(array_column($blueTargets['parts'], 'shown'))->toBe(['–', '–', '–'])
+        ->and($round2['maps'][0]['corners'][0]['known'])->toBeTrue();
+});
+
+it('shows an unknown control time as a dash with no bar', function () {
+    $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
+    RoundStat::where(['fight_id' => $fight->id, 'fighter_id' => $fight->red_fighter_id, 'round' => 0])->update(['control_time_sec' => 100]);
+    RoundStat::where(['fight_id' => $fight->id, 'fighter_id' => $fight->blue_fighter_id, 'round' => 0])->update(['control_time_sec' => null]);
+
+    $control = $this->get('/')->viewData('tape')['periods'][0]['rows'][3];
+
+    expect($control)->toMatchArray([
+        'label' => 'Control time',
+        'red' => '1:40', 'red_width' => 100,
+        'blue' => '–', 'blue_width' => 0, 'blue_leads' => false,
+    ]);
+});
+
+it('draws neither side as the leader on a tie, 0–0 included', function () {
+    $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
+    $totals = fn (int $fighterId) => RoundStat::where(['fight_id' => $fight->id, 'fighter_id' => $fighterId, 'round' => 0]);
+    $totals($fight->red_fighter_id)->update(['knockdowns' => 0, 'sig_str_landed' => 30, 'sub_attempts' => 2]);
+    $totals($fight->blue_fighter_id)->update(['knockdowns' => 0, 'sig_str_landed' => 30, 'sub_attempts' => 1]);
+
+    $response = $this->get('/');
+    $rows = collect($response->viewData('tape')['periods'][0]['rows'])->keyBy('label');
+
+    expect($rows['Knockdowns'])->toMatchArray(['red' => '0', 'blue' => '0', 'red_leads' => false, 'blue_leads' => false])
+        ->and($rows['Significant strikes'])->toMatchArray(['red' => '30', 'blue' => '30', 'red_leads' => false, 'blue_leads' => false])
+        ->and($rows['Submission attempts'])->toMatchArray(['red_leads' => true, 'blue_leads' => false]);
+
+    // Rendered: the knockdowns numbers carry no "lead" class.
+    preg_match('#<div data-row="5">.*?</div>\s*</div>#s', $response->getContent(), $knockdowns);
+    expect($knockdowns[0])->toContain('Knockdowns')->not->toMatch('/class="num [a-z-]+ lead"/');
 });
 
 it('counts rounds up to the highest round number present', function () {
