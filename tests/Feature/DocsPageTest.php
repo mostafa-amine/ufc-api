@@ -137,4 +137,6 @@ it('gives every API endpoint a name for the menu', function () {
         ->and($names->filter(fn ($name) => str_contains($name, '/v1/'))->keys()->all())->toBe([])
         // Short enough to sit on one line of the 380px menu.
         ->and($names->filter(fn ($name) => mb_strlen($name) > 30)->keys()->all())->toBe([]);
+
+    expect($names['POST v1/register'])->toBe('Register for an API key');
 });
