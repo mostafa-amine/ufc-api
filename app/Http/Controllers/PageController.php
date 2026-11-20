@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
+use App\Models\Fight;
+use App\Models\Fighter;
 use App\Services\Landing\BuildTaleOfTheTape;
 use App\Services\Landing\FindLatestDecision;
 use Illuminate\Http\Response;
@@ -9,13 +12,18 @@ use Illuminate\View\View;
 
 class PageController extends Controller
 {
-    /** Marketing landing page: the tale of the tape of the latest judges' decision. */
+    /** Marketing landing page: the latest judges' decision, drawn beside the API response it came from. */
     public function home(FindLatestDecision $findLatestDecision, BuildTaleOfTheTape $buildTape): View
     {
         $fight = $findLatestDecision();
 
         return view('landing', [
             'tape' => $fight ? $buildTape($fight) : null,
+            'counts' => [
+                'events' => Event::count(),
+                'fights' => Fight::count(),
+                'fighters' => Fighter::count(),
+            ],
         ]);
     }
 

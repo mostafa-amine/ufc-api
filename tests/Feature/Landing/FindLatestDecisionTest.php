@@ -93,6 +93,6 @@ it('shows no fight when the only decision is incomplete', function () {
     completeDecision(Event::factory()->create(['date' => '2026-09-20']), 1)->scorecards()->delete();
 
     expect(app(FindLatestDecision::class)())->toBeNull();
-    $this->get('/')->assertOk()->assertDontSee('Round by round');
+    $this->get('/')->assertOk()->assertDontSee('This fight card');
     expect($this->get('/')->viewData('tape'))->toBeNull();
 });

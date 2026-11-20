@@ -2,8 +2,10 @@
 
 use App\Models\Event;
 use App\Models\Fight;
+use App\Models\Fighter;
 use App\Models\RoundStat;
 use App\Models\Scorecard;
+use App\Models\User;
 use App\Scraping\PageFetcher;
 use App\Scraping\ScrapeUfc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -86,105 +88,83 @@ describe('which fight the landing page shows', function () {
 });
 
 describe('with no judges\' decision in the database', function () {
-    it('still loads with the nav, the closing section and the footer', function () {
+    it('still loads with the nav, the endpoints, the closing request and the footer', function () {
         Fight::factory()->create(['method' => 'KO/TKO']);
 
         $this->get('/')->assertOk()
             ->assertSeeInOrder(['Docs', 'GitHub', 'Get a free key'])
-            ->assertSee('Every number on this page came from one request.')
+            ->assertSee('Every UFC round,')
             ->assertSee('Read the docs')
+            ->assertSeeInOrder(['/v1/events', '/v1/fights', '/v1/fighters', '/v1/health'])
+            ->assertSee('/v1/fighters?search=silva')
             ->assertSee('Not affiliated with the UFC or Zuffa LLC. Data from ufcstats.com.');
     });
 
-    it('leaves out every fight section', function () {
+    it('leaves out the fight card and the response panel', function () {
         $this->get('/')->assertOk()
+            ->assertDontSee('This fight card')
             ->assertDontSee('Red corner')
             ->assertDontSee('Blue corner')
-            ->assertDontSee('Full fight')
             ->assertDontSee('Significant strikes')
-            ->assertDontSee('Where the strikes landed')
-            ->assertDontSee('Round by round')
+            ->assertDontSee('200 OK')
             ->assertDontSee('ufcstats prints this fight');
-    });
-
-    it('drops the old typed-in Aliskerov vs Ferreira numbers', function () {
-        $this->get('/')->assertOk()
-            ->assertDontSee('Aliskerov')
-            ->assertDontSee('Ferreira')
-            ->assertDontSee('Lethaby')
-            ->assertDontSee('30–27')
-            ->assertDontSee('control_time_sec');
     });
 });
 
-describe('the tale of the tape', function () {
+it('shows the live record counts on the endpoints', function () {
+    Fight::factory()->count(2)->for(Event::factory()->create())->create(['method' => 'KO/TKO']);
+    expect([Event::count(), Fight::count(), Fighter::count()])->toBe([1, 2, 4]);
+
+    $this->get('/')->assertSeeInOrder(['1 event,', '2 fights.', '4 fighters,']);
+});
+
+describe('the fight card and its response', function () {
     beforeEach(function () {
         $this->app->instance(PageFetcher::class, new FakePageFetcher(base_path('tests/fixtures')));
         app(ScrapeUfc::class)->scrapeEvent('31e1ea6fe6b682f8', refreshFighters: true);
     });
 
-    it('shows both corners, the result and the decision panel from the scraped bout', function () {
+    it('shows both corners, the result and the decision from the scraped bout', function () {
         $this->get('/')->assertOk()
+            ->assertSee('This fight card')
             ->assertSeeInOrder(['Red corner · W', 'Ikram', 'Aliskerov', 'Blue corner · L', 'Brunno', 'Ferreira'])
             ->assertSee('Unanimous decision')
             ->assertSee('30–27 · 30–27 · 30–27')
             ->assertSeeInOrder(['Middleweight', '3 × 5 min', 'Referee Marc Goddard', 'Judges Lethaby, Paolillo, Werner']);
     });
 
-    it('offers one period button per round of the bout', function () {
-        $this->get('/')
-            ->assertSeeInOrder(['Full fight', 'Round 1', 'Round 2', 'Round 3'])
-            ->assertDontSee('Round 4');
-    });
-
-    it('shows the six stat rows for the full fight', function () {
+    it('shows the four full-fight stat rows', function () {
         $this->get('/')->assertSeeInOrder([
             '47', 'Significant strikes', '48% vs 35% accuracy', '19',
             '114', 'Total strikes', '23',
             '5/6', 'Takedowns', '0/1',
             '8:53', 'Control time', '0:07',
-            '1', 'Submission attempts', '0',
-            '0', 'Knockdowns', '0',
         ]);
     });
 
-    it('shows strikes by target and position for the full fight', function () {
-        $this->get('/')->assertSeeInOrder([
-            'By target',
-            'Aliskerov', 'Head 32', 'Body 9', 'Leg 6',
-            'Ferreira', 'Head 13', 'Body 3', 'Leg 3',
-            'By position',
-            'Aliskerov', 'Distance 36', 'Clinch 0', 'Ground 11',
-            'Ferreira', 'Distance 19', 'Clinch 0', 'Ground 0',
-        ]);
-    });
+    it('prints the real response beside the card, every value from the API', function () {
+        $api = $this->getJson('/v1/fights/d83294b031502177', ['Authorization' => 'Bearer '.User::factory()->create()->createToken('t')->plainTextToken])->json('data');
+        $red = $api['stats']['red']['total'];
 
-    it('shows significant strikes per round in the round-by-round chart', function () {
-        $this->get('/')->assertSeeInOrder([
-            'Round by round',
-            '15', 'Round 1', '6',
-            '20', 'Round 2', '10',
-            '12', 'Round 3', '3',
-        ]);
-    });
-
-    it('carries every round\'s numbers so the period buttons can switch them', function () {
-        $periods = $this->get('/')->viewData('tape')['periods'];
-
-        expect($periods)->toHaveCount(4)
-            ->and(array_column($periods, 'label'))->toBe(['Full fight', 'Round 1', 'Round 2', 'Round 3'])
-            ->and($periods[2]['rows'][0])->toMatchArray(['label' => 'Significant strikes', 'red' => '20', 'blue' => '10'])
-            ->and($periods[3]['rows'][3])->toMatchArray(['label' => 'Control time', 'red' => '3:39', 'blue' => '0:00'])
-            ->and($periods[1]['maps'][0]['corners'][0]['parts'][0])->toMatchArray(['label' => 'Head', 'value' => 9]);
-    });
-
-    it('closes with the one request that returns these numbers', function () {
         $this->get('/')
-            ->assertSee('Every number on this page came from one request.')
-            ->assertSee('ufcstats prints this fight as 27–30')
             ->assertSee('/v1/fights/d83294b031502177')
-            ->assertSee('"control_time_sec": 533', false)
-            ->assertSee('"landed": 15', false);
+            ->assertSee('"method": "Decision - Unanimous",')
+            ->assertSee('{ "judge": "David Lethaby", "red": 30, "blue": 27 }')
+            ->assertSee('"sig_str": { "landed": '.$red['sig_str']['landed'].', "attempted": '.$red['sig_str']['attempted'].', "pct": '.$red['sig_str']['pct'].' },')
+            ->assertSee('"control_time_sec": '.$red['control_time_sec'].',')
+            ->assertSee('ufcstats prints this fight as 27–30');
+    });
+
+    it('ties each stat row to the response lines it comes from', function () {
+        $html = $this->get('/')->getContent();
+
+        foreach (['scores', 'sig', 'total', 'td', 'ctrl'] as $group) {
+            expect($html)->toContain('data-group="'.$group.'"')
+                ->and(substr_count($html, 'data-line="'.$group.'"'))->toBeGreaterThan(0);
+        }
+        // Significant strikes is picked on load: its row pressed and both corners' lines lit.
+        expect($html)->toMatch('/data-group="sig" aria-pressed="true"/')
+            ->and(preg_match_all('/class="line lit"\s+data-line="sig"/', $html))->toBe(2);
     });
 });
 
@@ -195,86 +175,42 @@ it('shows a fighter\'s nickname after the first name', function () {
     $this->get('/')->assertSeeInOrder(['Brunno “The Hulk”', 'Ferreira']);
 });
 
-it('shows Round 1 to Round 5 for a five-round decision', function () {
-    landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous', rounds: 5);
-
-    $this->get('/')
-        ->assertSee('5 × 5 min')
-        ->assertSeeInOrder(['Full fight', 'Round 1', 'Round 2', 'Round 3', 'Round 4', 'Round 5'])
-        ->assertDontSee('Round 6');
-});
-
-it('matches rounds by number when one corner is missing a round', function () {
-    $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
-    $stat = fn (int $fighterId, int $round) => RoundStat::where(['fight_id' => $fight->id, 'fighter_id' => $fighterId, 'round' => $round]);
-    foreach ([1 => 11, 2 => 12, 3 => 13] as $round => $landed) {
-        $stat($fight->red_fighter_id, $round)->update(['sig_str_landed' => $landed]);
-    }
-    $stat($fight->blue_fighter_id, 1)->update(['sig_str_landed' => 21]);
-    $stat($fight->blue_fighter_id, 3)->update(['sig_str_landed' => 23]);
-    $stat($fight->blue_fighter_id, 2)->delete();
-
-    $tape = $this->get('/')->viewData('tape');
-
-    expect(array_column($tape['periods'], 'label'))->toBe(['Full fight', 'Round 1', 'Round 2', 'Round 3'])
-        ->and($tape['periods'][3]['rows'][0])->toMatchArray(['red' => '13', 'blue' => '23'])
-        ->and(array_map(fn ($r) => [$r['n'], $r['red'], $r['blue']], $tape['rounds']))->toBe([[1, 11, 21], [2, 12, null], [3, 13, 23]])
-        ->and($tape['rounds'][1])->toMatchArray(['red_height' => 68, 'blue_height' => 0]);
-
-    // Blue has no round 2 at all: every blue value is unknown, red's still show.
-    $round2 = $tape['periods'][2];
-    expect($round2['rows'][0])->toMatchArray(['red' => '12', 'blue' => '–', 'note' => $round2['rows'][0]['note'], 'blue_width' => 0, 'red_width' => 100])
-        ->and(str_ends_with($round2['rows'][0]['note'], 'vs – accuracy'))->toBeTrue();
-    foreach ($round2['rows'] as $row) {
-        expect($row['blue'])->toBe('–')
-            ->and($row['blue_width'])->toBe(0)
-            ->and($row['red'])->not->toBe('–')
-            ->and($row['blue_leads'])->toBeFalse();
-    }
-    $blueTargets = $round2['maps'][0]['corners'][1];
-    expect($blueTargets['known'])->toBeFalse()
-        ->and(array_column($blueTargets['parts'], 'shown'))->toBe(['–', '–', '–'])
-        ->and($round2['maps'][0]['corners'][0]['known'])->toBeTrue();
-});
-
-it('shows an unknown control time as a dash with no bar', function () {
+it('shows an unknown control time as a dash with no bar, and null in the response', function () {
     $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
     RoundStat::where(['fight_id' => $fight->id, 'fighter_id' => $fight->red_fighter_id, 'round' => 0])->update(['control_time_sec' => 100]);
     RoundStat::where(['fight_id' => $fight->id, 'fighter_id' => $fight->blue_fighter_id, 'round' => 0])->update(['control_time_sec' => null]);
 
-    $control = $this->get('/')->viewData('tape')['periods'][0]['rows'][3];
+    $response = $this->get('/');
+    $control = collect($response->viewData('tape')['rows'])->keyBy('label')['Control time'];
 
     expect($control)->toMatchArray([
-        'label' => 'Control time',
         'red' => '1:40', 'red_width' => 100,
         'blue' => '–', 'blue_width' => 0, 'blue_leads' => false,
     ]);
+    $response->assertSee('"control_time_sec": null,');
+});
+
+it('shows a corner with no fight totals as dashes and a null total', function () {
+    $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
+    RoundStat::where(['fight_id' => $fight->id, 'fighter_id' => $fight->blue_fighter_id, 'round' => 0])->delete();
+
+    $response = $this->get('/')->assertOk();
+
+    foreach ($response->viewData('tape')['rows'] as $row) {
+        expect($row['blue'])->toBe('–')->and($row['blue_width'])->toBe(0)->and($row['red_leads'])->toBeFalse();
+    }
+    $response->assertSee('"total": null,');
 });
 
 it('draws neither side as the leader on a tie, 0–0 included', function () {
     $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
     $totals = fn (int $fighterId) => RoundStat::where(['fight_id' => $fight->id, 'fighter_id' => $fighterId, 'round' => 0]);
-    $totals($fight->red_fighter_id)->update(['knockdowns' => 0, 'sig_str_landed' => 30, 'sub_attempts' => 2]);
-    $totals($fight->blue_fighter_id)->update(['knockdowns' => 0, 'sig_str_landed' => 30, 'sub_attempts' => 1]);
+    $totals($fight->red_fighter_id)->update(['takedowns_landed' => 0, 'takedowns_attempted' => 0, 'sig_str_landed' => 30, 'total_str_landed' => 50]);
+    $totals($fight->blue_fighter_id)->update(['takedowns_landed' => 0, 'takedowns_attempted' => 0, 'sig_str_landed' => 30, 'total_str_landed' => 40]);
 
-    $response = $this->get('/');
-    $rows = collect($response->viewData('tape')['periods'][0]['rows'])->keyBy('label');
+    $rows = collect($this->get('/')->viewData('tape')['rows'])->keyBy('label');
 
-    expect($rows['Knockdowns'])->toMatchArray(['red' => '0', 'blue' => '0', 'red_leads' => false, 'blue_leads' => false])
+    expect($rows['Takedowns'])->toMatchArray(['red' => '0/0', 'blue' => '0/0', 'red_leads' => false, 'blue_leads' => false])
         ->and($rows['Significant strikes'])->toMatchArray(['red' => '30', 'blue' => '30', 'red_leads' => false, 'blue_leads' => false])
-        ->and($rows['Submission attempts'])->toMatchArray(['red_leads' => true, 'blue_leads' => false]);
-
-    // Rendered: the knockdowns numbers carry no "lead" class.
-    preg_match('#<div data-row="5">.*?</div>\s*</div>#s', $response->getContent(), $knockdowns);
-    expect($knockdowns[0])->toContain('Knockdowns')->not->toMatch('/class="num [a-z-]+ lead"/');
-});
-
-it('counts rounds up to the highest round number present', function () {
-    $fight = landingDecision(Event::factory()->create(['date' => '2026-09-01']), 1, 'Decision - Unanimous');
-    RoundStat::where(['fight_id' => $fight->id, 'round' => 2])->delete();
-
-    $tape = $this->get('/')->viewData('tape');
-
-    expect(array_column($tape['periods'], 'label'))->toBe(['Full fight', 'Round 1', 'Round 2', 'Round 3'])
-        ->and(array_column($tape['rounds'], 'n'))->toBe([1, 2, 3]);
+        ->and($rows['Total strikes'])->toMatchArray(['red_leads' => true, 'blue_leads' => false]);
 });
