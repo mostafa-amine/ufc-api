@@ -31,6 +31,8 @@ class RegisterController extends Controller
                 'api_key' => $token,
                 'rate_tier' => $user->rate_tier,
                 'user' => ['name' => $user->name, 'email' => $user->email],
+                // Using the key means accepting these; they forbid any gambling use.
+                'terms' => url('/terms'),
             ],
         ], 201);
     }

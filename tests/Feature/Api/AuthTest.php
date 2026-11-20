@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
@@ -51,7 +52,7 @@ it('allows public access to health without a key', function () {
 });
 
 it('returns the error envelope for unknown resources', function () {
-    \Laravel\Sanctum\Sanctum::actingAs(User::factory()->create());
+    Sanctum::actingAs(User::factory()->create());
 
     $this->getJson('/v1/fights/ffffffffffffffff')
         ->assertStatus(404)
@@ -71,4 +72,25 @@ it('throttles repeated registration attempts', function () {
     $this->postJson('/v1/register', $payload(99))
         ->assertStatus(429)
         ->assertJsonPath('error.code', 'rate_limited');
+});
+
+it('points new keys at the terms of use', function () {
+    $this->postJson('/v1/register', [
+        'name' => 'Test Dev', 'email' => 'terms@example.com', 'password' => 'password123',
+    ])->assertCreated()->assertJsonPath('data.terms', url('/terms'));
+});
+
+it('switches off a key and stops the same email from signing up again', function () {
+    $payload = ['name' => 'Odds Co', 'email' => 'odds@example.com', 'password' => 'password123'];
+    $key = $this->postJson('/v1/register', $payload)->json('data.api_key');
+
+    $this->artisan('ufc:revoke-key', ['email' => 'odds@example.com'])->assertSuccessful();
+
+    $this->app['auth']->forgetGuards();
+    $this->withToken($key)->getJson('/v1/fighters')->assertUnauthorized();
+    $this->postJson('/v1/register', $payload)->assertUnprocessable();
+});
+
+it('says so when there is no account to switch off', function () {
+    $this->artisan('ufc:revoke-key', ['email' => 'nobody@example.com'])->assertFailed();
 });

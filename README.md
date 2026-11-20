@@ -172,6 +172,12 @@ app/Models/                   Event, Fighter, Fight, RoundStat, Scorecard, Scrap
 See [`docs/specs/2026-06-27-ufc-api-design.md`](docs/specs/2026-06-27-ufc-api-design.md) for the
 full design.
 
+## Terms of use
+
+The hosted API is free for anything legal **except gambling**: no sportsbooks, odds, betting tips,
+betting models, prediction markets or paid fantasy contests. Keys used that way are switched off.
+Full terms: `/terms` on the hosted site. They cover the hosted API only; the code stays MIT.
+
 ## License
 
 [MIT](LICENSE). Data belongs to its respective owners; this project does not claim ownership of

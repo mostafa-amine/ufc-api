@@ -27,6 +27,12 @@ class PageController extends Controller
         ]);
     }
 
+    /** Terms of use for the hosted API, including the no-gambling rule. */
+    public function terms(): View
+    {
+        return view('terms');
+    }
+
     /** Interactive API reference (RapiDoc). */
     public function docs(): View
     {

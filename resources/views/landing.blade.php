@@ -198,7 +198,7 @@
   -H "Authorization: Bearer $KEY"</pre>
     <a href="/docs" class="btn">Get a free key</a>
   </div>
-  <div class="wrap fine">Not affiliated with the UFC or Zuffa LLC. Data from ufcstats.com.</div>
+  <div class="wrap fine">Not for gambling: see the <a href="/terms" style="color:inherit">terms of use</a>. Not affiliated with the UFC or Zuffa LLC. Data from ufcstats.com.</div>
 </section>
 
 @if ($tape)
