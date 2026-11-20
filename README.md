@@ -1,31 +1,48 @@
 # Unofficial UFC API
 
+**Every UFC round, one request.** A free, open-source REST API with the full depth of
+[ufcstats.com](http://ufcstats.com): every event, fight and fighter, stats for each round,
+where every strike landed, and judges' scores in the right corner.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![PHP 8.3](https://img.shields.io/badge/PHP-8.3-777BB4)
 ![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20)
 
-A hosted, open-source REST API exposing the **full depth** of [ufcstats.com](http://ufcstats.com)
-data covering every event, fight, fighter, **round-by-round statistic**, significant-strike
-**target/position breakdown**, and **judge scorecard**, through a clean, documented, queryable
-interface.
+**[Website](https://ufc-api.on-forge.com)** · **[Docs](https://ufc-api.on-forge.com/docs)** ·
+**[Is it up?](https://ufc-api.on-forge.com/v1/health)** · **[Terms](https://ufc-api.on-forge.com/terms)**
+
+[![The landing page: the latest judges' decision drawn beside the API response it came from](docs/images/landing.png)](https://ufc-api.on-forge.com)
+
+## Try it in 30 seconds
+
+```bash
+# 1. Get a free key
+curl -X POST https://ufc-api.on-forge.com/v1/register \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Jane Dev","email":"jane@example.com","password":"supersecret"}'
+
+# 2. Ask for a fighter
+curl "https://ufc-api.on-forge.com/v1/fighters?search=gane" \
+  -H 'Authorization: Bearer YOUR_KEY'
+```
+
+Free tier: 60 requests a minute. New fights are pulled from ufcstats every day.
 
 ## Why this exists
 
-The existing landscape splits two ways: detailed **datasets** (rich CSV dumps, no API) and
-**APIs** (shallow: fighters and rankings only, no round-by-round depth). ufcstats is the hard
-ceiling on detail; nobody can have *more* data than the source. The gap is turning that depth
-into a well-built, queryable API. That's this project.
+UFC data today comes two ways: detailed **datasets** (big CSV files, no API) or **APIs** that
+stop at fighters and rankings. This is both: the full detail of ufcstats, behind a clean API.
 
-What it does that others don't:
+- **Round by round.** Strikes, takedowns, knockdowns and control time for each round, not just
+  the fight total.
+- **Where strikes landed.** Head, body or leg, and from distance, clinch or the ground, every round.
+- **Judges' scores in the right corner.** ufcstats lists each score loser first, not by corner.
+  Scrapers that read it in order put about half their scorecards in the wrong corner. This API
+  matches every score to the fighter it belongs to, checked on unanimous and split decisions.
+- **Full fight details.** Referee, how it ended, time format, place on the card, title fights.
+- **Same IDs as ufcstats**, so you can always check a record against the source.
 
-- **Round-by-round stats**, queryable and relational, not just fight totals.
-- **Significant-strike breakdown** by target (head / body / leg) and position
-  (distance / clinch / ground), per round.
-- **Judge scorecards**, mapped to the correct fighter. *(ufcstats lists scores as
-  `loser - winner`, not by corner; naive scrapers assign them positionally and corrupt ~half
-  their scorecards. We map by the bout winner, verified across unanimous and split decisions.)*
-- Full fight metadata: referee, finish detail, time format, bout order, title-bout flag.
-- Stable IDs that match ufcstats, so you can always cross-reference the source.
+Free for anything legal **except gambling**. See [Terms of use](#terms-of-use).
 
 ## API
 
@@ -43,25 +60,13 @@ Base path: `/v1`. Responses are JSON. List endpoints are paginated (`data` + `me
 | `GET` | `/v1/fights` | List fights: `?event_id= &fighter_id= &method= &weight_class= &is_title_bout=` |
 | `GET` | `/v1/fights/{id}` | **Full fight**: corners, scorecards, totals + per-round breakdown |
 
-Interactive docs (OpenAPI / Swagger + "try it out") live at **`/docs`**.
+Interactive docs (OpenAPI + "try it out") live at **[/docs](https://ufc-api.on-forge.com/docs)**.
 
 ### Authentication
 
-Data endpoints require a free API key. Register, then send the key as a bearer token:
-
-```bash
-# 1. Register
-curl -X POST https://your-host/v1/register \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"Jane Dev","email":"jane@example.com","password":"supersecret"}'
-# => { "data": { "api_key": "1|abc...", "rate_tier": "free", ... } }
-
-# 2. Call the API
-curl https://your-host/v1/fighters?search=adesanya \
-  -H 'Authorization: Bearer 1|abc...'
-```
-
-Free tier: **60 requests/min** per key. Exceeding it returns `429` with the error envelope.
+Data endpoints need a free API key (see [Try it in 30 seconds](#try-it-in-30-seconds)). Send it
+as a bearer token. Free tier: **60 requests/min** per key; going over returns `429` with the
+error envelope.
 
 ### Example: `GET /v1/fights/{id}`
 
@@ -177,6 +182,13 @@ full design.
 The hosted API is free for anything legal **except gambling**: no sportsbooks, odds, betting tips,
 betting models, prediction markets or paid fantasy contests. Keys used that way are switched off.
 Full terms: `/terms` on the hosted site. They cover the hosted API only; the code stays MIT.
+
+## Contributing
+
+Issues and pull requests are welcome, especially parser fixes when ufcstats changes a page.
+Run `php artisan test` before opening a pull request.
+
+If this API saves you time, a star on GitHub helps other people find it.
 
 ## License
 
