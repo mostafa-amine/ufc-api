@@ -84,3 +84,37 @@ it('discovers events from the listing', function () {
     expect($count)->toBeGreaterThan(700)
         ->and(Event::where('ufcstats_id', '31e1ea6fe6b682f8')->exists())->toBeTrue();
 });
+
+it('re-checks a recent event scraped before fight night until its results are in', function () {
+    $fake = new FakePageFetcher(base_path('tests/fixtures'));
+    $this->app->instance(PageFetcher::class, $fake);
+
+    // An id outside the fixture list, so the list sync leaves its date alone.
+    // Scraped the day before the card, so its fights were saved with no result yet.
+    $event = Event::create([
+        'ufcstats_id' => 'a0a0a0a0a0a0a0a0', 'name' => 'x', 'date' => now()->subDays(2)->toDateString(),
+        // The list sync has already flipped it to completed, as it does after fight night.
+        'status' => 'completed', 'last_scraped_at' => now()->subDays(3),
+    ]);
+    $event->fights()->create(['ufcstats_id' => 'd83294b031502177', 'outcome' => 'pending']);
+
+    app(ScrapeUfc::class)->incremental();
+
+    expect(collect($fake->requested)->filter(fn ($u) => str_contains($u, 'event-details/a0a0a0a0a0a0a0a0')))->not->toBeEmpty()
+        ->and(Fight::where('ufcstats_id', 'd83294b031502177')->value('method'))->toBe('Decision - Unanimous');
+});
+
+it('leaves an older event with a missing result to the full backfill', function () {
+    $fake = new FakePageFetcher(base_path('tests/fixtures'));
+    $this->app->instance(PageFetcher::class, $fake);
+
+    $event = Event::create([
+        'ufcstats_id' => 'a0a0a0a0a0a0a0a0', 'name' => 'x', 'date' => now()->subDays(60)->toDateString(),
+        'status' => 'completed', 'last_scraped_at' => now()->subDays(59),
+    ]);
+    $event->fights()->create(['ufcstats_id' => 'd83294b031502177', 'outcome' => 'pending']);
+
+    app(ScrapeUfc::class)->incremental();
+
+    expect(collect($fake->requested)->filter(fn ($u) => str_contains($u, 'event-details/a0a0a0a0a0a0a0a0')))->toBeEmpty();
+});

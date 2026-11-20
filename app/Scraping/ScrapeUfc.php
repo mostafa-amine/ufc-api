@@ -180,9 +180,16 @@ class ScrapeUfc
         $this->scrapeFighter($id);
     }
 
+    /** How far back an event keeps being re-checked while some of its fights have no result. */
+    private const RESULT_WINDOW_DAYS = 30;
+
     /**
      * Incremental run: sync the event list, then scrape events that are new
-     * (never scraped) or still upcoming.
+     * (never scraped), still upcoming, or recent but missing fight results.
+     *
+     * The last case matters because an event is usually first scraped before
+     * fight night, and the list sync then flips it to "completed" on its own:
+     * without it, the results would never be fetched.
      */
     public function incremental(): ScrapeRun
     {
@@ -190,7 +197,11 @@ class ScrapeUfc
             $this->syncEventList();
 
             Event::query()
-                ->where(fn ($q) => $q->whereNull('last_scraped_at')->orWhere('status', 'upcoming'))
+                ->where(fn ($q) => $q->whereNull('last_scraped_at')
+                    ->orWhere('status', 'upcoming')
+                    ->orWhere(fn ($q) => $q
+                        ->where('date', '>=', CarbonImmutable::today()->subDays(self::RESULT_WINDOW_DAYS))
+                        ->whereHas('fights', fn ($f) => $f->where('outcome', 'pending'))))
                 ->orderByDesc('date')
                 ->get()
                 ->each(fn (Event $e) => $this->scrapeEvent($e->ufcstats_id));
