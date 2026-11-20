@@ -109,7 +109,7 @@
     @endif
   </div>
   <div class="ctas">
-    <a href="/docs" class="btn solid">Get a free key</a>
+    <a href="/register" class="btn solid">Get a free key</a>
     <a href="/docs" class="btn ghost">Read the docs</a>
   </div>
 </header>
@@ -196,7 +196,7 @@
   <div class="wrap closing-in">
 <pre>curl {{ url('/v1/fighters') }}?search={{ $tape ? rawurlencode(strtolower($tape['red']['last'])) : 'silva' }} \
   -H "Authorization: Bearer $KEY"</pre>
-    <a href="/docs" class="btn">Get a free key</a>
+    <a href="/register" class="btn">Get a free key</a>
   </div>
   <div class="wrap fine">Not for gambling: see the <a href="/terms" style="color:inherit">terms of use</a>. Not affiliated with the UFC or Zuffa LLC. Data from ufcstats.com.</div>
 </section>

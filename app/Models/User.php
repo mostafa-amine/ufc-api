@@ -23,6 +23,14 @@ class User extends Authenticatable
         'rate_tier' => 'free',
     ];
 
+    /** Most keys one account may hold at once. */
+    public const MAX_KEYS = 10;
+
+    public function isBlocked(): bool
+    {
+        return $this->blocked_at !== null;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -33,6 +41,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'blocked_at' => 'datetime',
         ];
     }
 }

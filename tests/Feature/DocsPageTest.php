@@ -42,7 +42,7 @@ it('keeps the docs content and the try-it feature as they are', function () {
         ->toContain('allow-server-selection="true"')
         ->toContain('fill-request-fields-with-example="true"')
         ->not->toContain('allow-try="false"')
-        ->toContain('Get a free key from <code');
+        ->toContain('Get a free key from <a href="/register"')->toContain('<code style="color:#C41E26">POST /v1/register</code>');
 });
 
 it('sets all reading text in Archivo at one 16px size', function () {

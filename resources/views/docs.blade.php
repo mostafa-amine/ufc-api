@@ -70,7 +70,7 @@
   </div>
   <div slot="servers" id="selected-server" style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#C41E26;margin:-4px 0 12px">SELECTED: <code style="font-family:'IBM Plex Mono',monospace;font-size:15px"></code></div>
   <div slot="auth" style="font-family:'Archivo',sans-serif;font-size:16px;line-height:1.5;color:#3A3732;padding:6px 0">
-    Get a free key from <code style="color:#C41E26">POST /v1/register</code>, then send it as a Bearer token. Using a key means you accept the <a href="/terms" style="color:#C41E26">terms of use</a>: no gambling of any kind.
+    Get a free key from <a href="/register" style="color:#C41E26">your dashboard</a> or <code style="color:#C41E26">POST /v1/register</code>, then send it as a Bearer token. Using a key means you accept the <a href="/terms" style="color:#C41E26">terms of use</a>: no gambling of any kind.
   </div>
 </rapi-doc>
 

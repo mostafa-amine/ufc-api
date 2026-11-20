@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 /**
  * Switches off every API key of one account, e.g. one used for gambling (see /terms).
- * The account itself stays, so the same email cannot sign up for a new key.
+ * The account stays, marked blocked: it cannot log in, make new keys, or sign up again with that email.
  */
 class RevokeKeyCommand extends Command
 {
@@ -26,7 +26,8 @@ class RevokeKeyCommand extends Command
         }
 
         $count = $user->tokens()->delete();
-        $this->info("Switched off {$count} key(s) for {$user->email}. This email can't sign up again.");
+        $user->forceFill(['blocked_at' => now()])->save();
+        $this->info("Switched off {$count} key(s) for {$user->email} and blocked the account: it can't log in, make keys or sign up again.");
 
         return self::SUCCESS;
     }

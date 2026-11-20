@@ -15,7 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // API guests get the JSON 401 envelope (no redirect); website guests go to the login page.
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('v1/*') ? null : route('login'));
+        $middleware->redirectUsersTo(fn () => route('dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

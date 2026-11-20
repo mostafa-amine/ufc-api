@@ -4,11 +4,12 @@ namespace App\Providers;
 
 use App\Scraping\PageFetcher;
 use App\Scraping\UfcStatsClient;
-use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,9 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // API-only app: never redirect unauthenticated requests to a (non-existent)
-        // `login` route. Guests always get the JSON 401 envelope instead of a 500.
-        Authenticate::redirectUsing(fn () => null);
+        // A blocked account's keys stop working even if one was somehow left behind.
+        Sanctum::authenticateAccessTokensUsing(
+            fn (PersonalAccessToken $token, bool $isValid) => $isValid && ! $token->tokenable?->isBlocked(),
+        );
 
         // Per-key rate limiting, tier-aware. Free tier: 60 req/min.
         RateLimiter::for('api', function (Request $request) {

@@ -13,6 +13,11 @@
   <div class="nav-links">
     <a href="/docs">Docs</a>
     <a href="https://github.com/mostafa-amine/ufc-api" target="_blank" rel="noopener">GitHub</a>
-    <a href="/docs" class="key-btn">Get a free key</a>
+    @auth
+      <a href="{{ route('dashboard') }}" class="key-btn">Your keys</a>
+    @else
+      <a href="{{ route('login') }}">Log in</a>
+      <a href="{{ route('register') }}" class="key-btn">Get a free key</a>
+    @endauth
   </div>
 </nav>
