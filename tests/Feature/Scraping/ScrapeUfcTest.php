@@ -5,9 +5,11 @@ use App\Models\Fight;
 use App\Models\Fighter;
 use App\Models\RoundStat;
 use App\Models\Scorecard;
+use App\Models\ScrapeRun;
 use App\Scraping\PageFetcher;
 use App\Scraping\ScrapeUfc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Tests\Support\FakePageFetcher;
 
 uses(RefreshDatabase::class);
@@ -117,4 +119,35 @@ it('leaves an older event with a missing result to the full backfill', function 
     app(ScrapeUfc::class)->incremental();
 
     expect(collect($fake->requested)->filter(fn ($u) => str_contains($u, 'event-details/a0a0a0a0a0a0a0a0')))->toBeEmpty();
+});
+
+it('fails the run when ufcstats sends a page we cannot read instead of the events list', function () {
+    // What ufcstats serves when its browser check is not cleared.
+    $this->app->instance(PageFetcher::class, new class implements PageFetcher
+    {
+        public function fetch(string $url): string
+        {
+            return '<html><body><p>Checking your browser…</p></body></html>';
+        }
+    });
+    Log::spy();
+
+    $this->artisan('ufc:scrape')->assertFailed();
+
+    expect(ScrapeRun::latest('id')->value('status'))->toBe('failed');
+    Log::shouldHaveReceived('error')->withArgs(fn ($message) => str_contains($message, 'Run failed'))->once();
+    $this->getJson('/v1/health')->assertJsonPath('data.last_scrape.status', 'failed');
+});
+
+it('marks the run partial when some pages fail but the rest are saved', function () {
+    $this->app->instance(PageFetcher::class, new FakePageFetcher(base_path('tests/fixtures')));
+    Log::spy();
+
+    // The fixture event lists bouts whose fight pages are missing, so those fetches fail.
+    $run = app(ScrapeUfc::class)->latest(1);
+
+    expect($run->status)->toBe('partial')
+        ->and($run->events_scraped)->toBe(1)
+        ->and($run->errors)->not->toBeEmpty();
+    Log::shouldHaveReceived('warning')->once();
 });

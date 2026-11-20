@@ -14,6 +14,8 @@ use App\Scraping\Parsers\FightDetailParser;
 use App\Scraping\Parsers\FighterParser;
 use Carbon\CarbonImmutable;
 use Closure;
+use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -55,7 +57,15 @@ class ScrapeUfc
         foreach (['completed' => 'completed', 'upcoming' => 'upcoming'] as $path => $status) {
             try {
                 $html = $this->fetcher->fetch($this->base()."/statistics/events/{$path}?page=all");
-                foreach ($this->eventList->parse($html) as $event) {
+                $events = $this->eventList->parse($html);
+
+                // The completed list always holds hundreds of events: an empty one means
+                // ufcstats sent a page we can't read (a block page or a new layout).
+                if ($path === 'completed' && $events === []) {
+                    throw new RuntimeException('The completed events list had no events we could read.');
+                }
+
+                foreach ($events as $event) {
                     $this->upsertEvent->upsert($event['ufcstats_id'], [
                         'name' => $event['name'],
                         'date' => $event['date'],
@@ -241,11 +251,12 @@ class ScrapeUfc
 
         try {
             $work();
-            $status = 'success';
         } catch (Throwable $e) {
             $this->errors[] = ['stage' => 'run', 'id' => $type, 'error' => $e->getMessage()];
-            $status = 'failed';
         }
+
+        $status = $this->outcome();
+        $this->report($type, $status);
 
         $run->update([
             'status' => $status,
@@ -257,5 +268,44 @@ class ScrapeUfc
         ]);
 
         return $run->refresh();
+    }
+
+    /**
+     * success: nothing went wrong. partial: some pages failed, the rest saved.
+     * failed: the run crashed, the completed events list could not be read (so
+     * nothing new can be found), or every page it tried failed.
+     */
+    private function outcome(): string
+    {
+        if ($this->errors === []) {
+            return 'success';
+        }
+
+        $stages = array_column($this->errors, 'stage', 'id');
+        $listFailed = ($stages['completed'] ?? null) === 'event-list';
+        $crashed = in_array('run', array_column($this->errors, 'stage'), true);
+        $savedNothing = $this->eventsScraped + $this->fightsScraped + $this->fightersScraped === 0;
+
+        return $crashed || $listFailed || $savedNothing ? 'failed' : 'partial';
+    }
+
+    private function report(string $type, string $status): void
+    {
+        if ($status === 'success') {
+            return;
+        }
+
+        $context = [
+            'type' => $type,
+            'error_count' => count($this->errors),
+            'errors' => array_slice($this->errors, 0, 20),
+            'events' => $this->eventsScraped,
+            'fights' => $this->fightsScraped,
+            'fighters' => $this->fightersScraped,
+        ];
+
+        $status === 'failed'
+            ? Log::error('[ufc:scrape] Run failed', $context)
+            : Log::warning('[ufc:scrape] Run finished with errors', $context);
     }
 }

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('type')->default('incremental'); // incremental | full | event
             $table->timestamp('started_at')->nullable();
             $table->timestamp('finished_at')->nullable();
-            $table->string('status')->default('running'); // running | success | failed
+            $table->string('status')->default('running'); // running | success | partial | failed
             $table->unsignedInteger('events_scraped')->default(0);
             $table->unsignedInteger('fights_scraped')->default(0);
             $table->unsignedInteger('fighters_scraped')->default(0);

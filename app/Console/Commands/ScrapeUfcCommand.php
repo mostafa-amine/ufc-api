@@ -48,6 +48,7 @@ class ScrapeUfcCommand extends Command
             ]],
         );
 
-        return $run->status === 'success' ? self::SUCCESS : self::FAILURE;
+        // A partial run still saved data, so only a failed run fails the scheduled task.
+        return $run->status === 'failed' ? self::FAILURE : self::SUCCESS;
     }
 }
