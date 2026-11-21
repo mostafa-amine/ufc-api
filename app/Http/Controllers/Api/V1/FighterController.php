@@ -41,6 +41,8 @@ class FighterController extends Controller
     /** Get a fighter's fights */
     public function fights(Request $request, Fighter $fighter)
     {
+        $request->validate(['per_page' => 'integer|min:1|max:100']);
+
         $fights = Fight::query()
             ->select('fights.*')
             ->leftJoin('events', 'events.id', '=', 'fights.event_id')

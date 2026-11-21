@@ -5,16 +5,17 @@ use App\Http\Controllers\Api\V1\FightController;
 use App\Http\Controllers\Api\V1\FighterController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\RegisterController;
+use App\Http\Middleware\CacheApiResponse;
 use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware(ForceJsonResponse::class)->group(function () {
     // Public.
-    Route::get('health', [HealthController::class, 'show']);
+    Route::get('health', [HealthController::class, 'show'])->middleware(CacheApiResponse::class.':60');
     Route::post('register', [RegisterController::class, 'store'])->middleware('throttle:6,1');
 
     // Authenticated with a free API key, rate-limited per key by tier.
-    Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+    Route::middleware(['auth:sanctum', 'throttle:api', CacheApiResponse::class])->group(function () {
         Route::get('events', [EventController::class, 'index']);
         Route::get('events/{event}', [EventController::class, 'show']);
 
