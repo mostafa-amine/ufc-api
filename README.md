@@ -51,7 +51,7 @@ Base path: `/v1`. Responses are JSON. List endpoints are paginated (`data` + `me
 | Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/v1/register` | Get a free API key |
-| `GET` | `/v1/health` | Service health + row counts (public) |
+| `GET` | `/v1/health` | Is it up, how fresh the data is, and the latest card (public) |
 | `GET` | `/v1/events` | List events: `?status= &from= &to= &search= &sort=-date &per_page=` |
 | `GET` | `/v1/events/{id}` | Event + its bouts |
 | `GET` | `/v1/fighters` | List/search fighters: `?search= &stance= &sort=name` |

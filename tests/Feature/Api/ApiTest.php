@@ -127,6 +127,7 @@ it('filters fights by title bout and fighter', function () {
 
 it('reports health', function () {
     Event::factory()->count(2)->create();
+    \App\Models\ScrapeRun::create(['type' => 'incremental', 'status' => 'success', 'started_at' => now()->subHour(), 'finished_at' => now()]);
 
     $this->getJson('/v1/health')
         ->assertOk()

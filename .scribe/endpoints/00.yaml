@@ -14,7 +14,7 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: true
+      authenticated: false
       deprecated: false
     headers:
       Authorization: 'Bearer {YOUR_AUTH_KEY}'
@@ -31,7 +31,7 @@ endpoints:
       -
         custom: []
         status: 200
-        content: '{"data":{"status":"ok","counts":{"events":1,"fighters":26,"fights":13},"last_scrape":null}}'
+        content: '{"data":{"status":"ok","counts":{"events":767,"fighters":4594,"fights":8571},"last_scrape":{"type":"incremental","status":"success","finished_at":"2026-11-22T09:04:12+00:00"},"last_successful_scrape":{"type":"incremental","finished_at":"2026-11-22T09:04:12+00:00"},"latest_event":{"id":"cbf69fa846c7e3ee","name":"UFC Fight Night: Prochazka vs. Stirling","date":"2026-11-21","fights":12,"fights_with_results":12}}}'
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json

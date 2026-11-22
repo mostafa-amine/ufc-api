@@ -178,7 +178,7 @@
     <div class="endpoint"><code>/v1/events</code><p>{{ number_format($counts['events']) }} {{ Str::plural('event', $counts['events']) }}, each with its full card.</p></div>
     <div class="endpoint"><code>/v1/fights</code><p>{{ number_format($counts['fights']) }} {{ Str::plural('fight', $counts['fights']) }}. Filter by event, fighter, method, weight or title.</p></div>
     <div class="endpoint"><code>/v1/fighters</code><p>{{ number_format($counts['fighters']) }} {{ Str::plural('fighter', $counts['fighters']) }}, with record and career averages.</p></div>
-    <div class="endpoint"><code>/v1/health</code><p>Is it up, and when it last pulled new fights. No key needed.</p></div>
+    <div class="endpoint"><code>/v1/health</code><p>Is it up, how fresh the data is, and the latest card we have. No key needed.</p></div>
   </div>
 </section>
 

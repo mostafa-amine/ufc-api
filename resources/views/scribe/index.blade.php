@@ -136,9 +136,8 @@ You can switch the language used with the tabs at the top right (or from the nav
 
                                 <h2 id="endpoints-GETv1-health">GET v1/health</h2>
 
-<p>
-<small class="badge badge-darkred">requires authentication</small>
-</p>
+<p>No key needed.</p>
+<p><code>status</code> is <code>ok</code> while the data was updated in the last day, and <code>stale</code> once it was not. <code>last_successful_scrape</code> says when the data was last good, and <code>latest_event</code> is the most recent card that already happened, with how many of its fights have results.</p>
 
 
 
@@ -189,11 +188,26 @@ content-type: application/json
     &quot;data&quot;: {
         &quot;status&quot;: &quot;ok&quot;,
         &quot;counts&quot;: {
-            &quot;events&quot;: 1,
-            &quot;fighters&quot;: 26,
-            &quot;fights&quot;: 13
+            &quot;events&quot;: 767,
+            &quot;fighters&quot;: 4594,
+            &quot;fights&quot;: 8571
         },
-        &quot;last_scrape&quot;: null
+        &quot;last_scrape&quot;: {
+            &quot;type&quot;: &quot;incremental&quot;,
+            &quot;status&quot;: &quot;success&quot;,
+            &quot;finished_at&quot;: &quot;2026-11-22T09:04:12+00:00&quot;
+        },
+        &quot;last_successful_scrape&quot;: {
+            &quot;type&quot;: &quot;incremental&quot;,
+            &quot;finished_at&quot;: &quot;2026-11-22T09:04:12+00:00&quot;
+        },
+        &quot;latest_event&quot;: {
+            &quot;id&quot;: &quot;cbf69fa846c7e3ee&quot;,
+            &quot;name&quot;: &quot;UFC Fight Night: Prochazka vs. Stirling&quot;,
+            &quot;date&quot;: &quot;2026-11-21&quot;,
+            &quot;fights&quot;: 12,
+            &quot;fights_with_results&quot;: 12
+        }
     }
 }</code>
  </pre>
