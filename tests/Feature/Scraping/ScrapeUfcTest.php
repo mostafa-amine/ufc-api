@@ -106,6 +106,37 @@ it('re-checks a recent event scraped before fight night until its results are in
         ->and(Fight::where('ufcstats_id', 'd83294b031502177')->value('method'))->toBe('Decision - Unanimous');
 });
 
+it('re-reads a card from the last few days even when every fight has a result, to fix half-finished stats', function () {
+    $fake = new FakePageFetcher(base_path('tests/fixtures'));
+    $this->app->instance(PageFetcher::class, $fake);
+
+    // Read on fight night while ufcstats was still filling in the numbers.
+    $event = Event::create([
+        'ufcstats_id' => 'a0a0a0a0a0a0a0a0', 'name' => 'x', 'date' => now()->subDays(1)->toDateString(),
+        'status' => 'completed', 'last_scraped_at' => now()->subHours(12),
+    ]);
+    $event->fights()->create(['ufcstats_id' => 'd83294b031502177', 'outcome' => 'win']);
+
+    app(ScrapeUfc::class)->incremental();
+
+    expect(collect($fake->requested)->filter(fn ($u) => str_contains($u, 'event-details/a0a0a0a0a0a0a0a0')))->not->toBeEmpty();
+});
+
+it('stops re-reading a finished card after a few days', function () {
+    $fake = new FakePageFetcher(base_path('tests/fixtures'));
+    $this->app->instance(PageFetcher::class, $fake);
+
+    $event = Event::create([
+        'ufcstats_id' => 'a0a0a0a0a0a0a0a0', 'name' => 'x', 'date' => now()->subDays(10)->toDateString(),
+        'status' => 'completed', 'last_scraped_at' => now()->subDays(9),
+    ]);
+    $event->fights()->create(['ufcstats_id' => 'd83294b031502177', 'outcome' => 'win']);
+
+    app(ScrapeUfc::class)->incremental();
+
+    expect(collect($fake->requested)->filter(fn ($u) => str_contains($u, 'event-details/a0a0a0a0a0a0a0a0')))->toBeEmpty();
+});
+
 it('leaves an older event with a missing result to the full backfill', function () {
     $fake = new FakePageFetcher(base_path('tests/fixtures'));
     $this->app->instance(PageFetcher::class, $fake);

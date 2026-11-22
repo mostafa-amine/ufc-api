@@ -194,8 +194,16 @@ class ScrapeUfc
     private const RESULT_WINDOW_DAYS = 30;
 
     /**
+     * How far back an event is always re-read, even when every fight has a result.
+     * ufcstats fills in stats over the hours after a card, so a read that lands
+     * mid-update saves half-finished numbers; re-reading fixes them on the next run.
+     */
+    private const SETTLE_DAYS = 3;
+
+    /**
      * Incremental run: sync the event list, then scrape events that are new
-     * (never scraped), still upcoming, or recent but missing fight results.
+     * (never scraped), still upcoming, from the last few days, or recent but
+     * missing fight results.
      *
      * The last case matters because an event is usually first scraped before
      * fight night, and the list sync then flips it to "completed" on its own:
@@ -209,6 +217,7 @@ class ScrapeUfc
             Event::query()
                 ->where(fn ($q) => $q->whereNull('last_scraped_at')
                     ->orWhere('status', 'upcoming')
+                    ->orWhereBetween('date', [CarbonImmutable::today()->subDays(self::SETTLE_DAYS), CarbonImmutable::today()])
                     ->orWhere(fn ($q) => $q
                         ->where('date', '>=', CarbonImmutable::today()->subDays(self::RESULT_WINDOW_DAYS))
                         ->whereHas('fights', fn ($f) => $f->where('outcome', 'pending'))))
